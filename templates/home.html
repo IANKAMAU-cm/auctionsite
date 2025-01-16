@@ -1,0 +1,18 @@
+{% extends 'base.html' %}
+
+{% block content %}
+{% if auctions %}
+    <div class="auction-list">
+        {% for auction in auctions %}
+            <div class="auction-item">
+                <img src="{{ url_for('static', filename=auction.image) }}" alt="{{ auction.title }}" class="auction-image">
+                <h2 class="auction-title">{{ auction.title }}</h2>
+                <p class="auction-price">Starting Price: {{ auction.starting_price }}</p>
+                <p class="auction-end">Ends: {{ auction.end_time }}</p>
+            </div>
+        {% endfor %}
+    </div>
+{% else %}
+    <p>No active auctions are available at the moment. Please check back later!</p>
+{% endif %}
+{% endblock %}

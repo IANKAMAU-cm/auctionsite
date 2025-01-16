@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+{% block content %}
+<h1>Register</h1>
+<form method="POST">
+    {{ form.hidden_tag() }}
+    <div>
+        {{ form.username.label }}<br>
+        {{ form.username(class="form-control") }}
+    </div>
+    <div>
+        {{ form.password.label }}<br>
+        {{ form.password(class="form-control") }}
+    </div>
+    <div>
+        {{ form.confirm_password.label }}<br>
+        {{ form.confirm_password(class="form-control") }}
+    </div>
+    {% if is_admin %}
+        <div>
+            {{ form.is_admin.label }}<br>
+            {{ form.is_admin() }}
+        </div>
+    {% endif %}
+    <button type="submit" class="btn btn-primary">{{ form.submit.label }}</button>
+</form>
+{% endblock %}

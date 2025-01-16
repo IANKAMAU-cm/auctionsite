@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Auction</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <h1>Edit Auction</h1>
+    <form action="{{ url_for('edit_auction', auction_id=auction_item.id) }}" method="POST" enctype="multipart/form-data">
+        <label for="title">Title:</label>
+        <input type="text" id="title" name="title" value="{{ auction_item.title }}" required>
+        <br>
+    
+        <label for="description">Description:</label>
+        <textarea id="description" name="description" required>{{ auction_item.description }}</textarea>
+        <br>
+    
+        <label for="starting_price">Starting Price:</label>
+        <input type="number" id="starting_price" name="starting_price" value="{{ auction_item.starting_price }}" required>
+        <br>
+    
+        <label for="end_time">End Time:</label>
+        <input type="datetime-local" id="end_time" name="end_time" value="{{ auction_item.end_time }}" required>
+        <br>
+    
+        <label for="image">Upload an Image (Max: 5 MB):</label>
+        {% if auction_item.image %}
+            <p>Current Image:</p>
+            <img src="{{ url_for('static', filename='uploads/' + auction_item.image) }}" alt="Auction Image" style="max-width: 200px;">
+        {% endif %}
+        <input type="file" id="image" name="image">
+        <br>
+    
+        <button type="submit">Save Changes</button>
+    </form>
+    <a href="{{ url_for('view_auctions') }}">Back to Auctions</a>
+</body>
+</html>

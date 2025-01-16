@@ -1,0 +1,158 @@
+/* Home Page Styles */
+body, html {
+    overflow-x: hidden;
+}
+
+
+.page-title {
+    text-align: center;
+    margin: 20px 0;
+    font-size: 2rem;
+    color: #333;
+}
+
+.auction-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); /* Create responsive grid */
+    gap: 20px;
+    width: 100%; /* Take full width of the container */
+    margin: 0 auto;
+    padding: 5px;
+}
+
+.auction-item {
+    min-height: 200px; /* Ensure consistent card sizes */
+    background-color: #fff;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    text-align: center;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.auction-item:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+.auction-image {
+    max-width: 100%; /* Ensures responsiveness */
+    height: auto;   /* Maintains aspect ratio */
+    max-height: 300px; /* Optional: Restrict maximum height */
+    object-fit: cover; /* Ensures images fit within the defined box */
+    border-radius: 8px; /* Optional: Adds rounded corners */
+}
+
+.auction-title {
+    font-size: 1.5rem;
+    margin: 10px 0;
+    color: #555;
+}
+
+.auction-price,
+.auction-end {
+    font-size: 1rem;
+    margin: 5px 0;
+    color: #666;
+}
+
+.auction-link {
+    display: inline-block;
+    margin: 15px 0;
+    padding: 10px 15px;
+    background-color: #007bff;
+    color: #fff;
+    border-radius: 5px;
+    text-decoration: none;
+    font-size: 1rem;
+    transition: background-color 0.2s ease;
+}
+
+.auction-link:hover {
+    background-color: #0056b3;
+}
+
+/*Login Page Styles*/
+/* Center the login form on the page */
+.login-container {
+    max-width: 400px;
+    margin: 50px auto; /* Centers vertically and horizontally */
+    padding: 20px;
+    border: 1px solid #ddd; /* Light border around the form */
+    border-radius: 8px; /* Rounded corners */
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Adds a subtle shadow */
+    background-color: #f9f9f9; /* Light background color */
+}
+
+/* Form headings */
+.login-container h1 {
+    text-align: center;
+    margin-bottom: 20px;
+    color: #333;
+}
+
+/* Label styles */
+.login-container label {
+    display: block;
+    font-weight: bold;
+    margin-bottom: 5px;
+    color: #555;
+}
+
+/* Input field styles */
+.login-container input {
+    width: 100%; /* Full width */
+    padding: 10px;
+    margin-bottom: 15px; /* Space between fields */
+    border: 1px solid #ccc; /* Light border */
+    border-radius: 4px; /* Slightly rounded corners */
+    box-sizing: border-box; /* Prevents padding from affecting width */
+}
+
+/* Submit button */
+.login-container input[type="submit"] {
+    background-color: #007bff; /* Primary blue */
+    color: #fff; /* White text */
+    border: none; /* No border */
+    padding: 10px 15px;
+    border-radius: 4px;
+    cursor: pointer; /* Changes cursor to pointer */
+    font-size: 16px;
+}
+
+/* Hover effect for submit button */
+.login-container input[type="submit"]:hover {
+    background-color: #0056b3; /* Darker blue on hover */
+}
+
+/* Add spacing between inputs */
+.login-container p {
+    margin: 0;
+}
+
+ /* Media query for smaller screens */
+ @media (max-width: 600px) {
+    .login-container {
+        margin: 20px; /* Reduce margin for smaller screens */
+        padding: 15px; /* Reduce padding for smaller screens */
+        max-width: 100%; /* Allow full width for very small screens */
+        box-shadow: none; /* Remove shadow for simplicity on small screens */
+    }
+
+    .login-container h1 {
+        font-size: 24px; /* Adjust font size */
+        margin-bottom: 15px;
+    }
+
+    .login-container input {
+        padding: 8px; /* Slightly smaller padding */
+        font-size: 14px; /* Smaller font size for inputs */
+    }
+
+    .login-container input[type="submit"] {
+        padding: 10px;
+        font-size: 14px;
+    }
+}
+

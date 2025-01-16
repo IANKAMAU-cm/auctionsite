@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Add Auction</title>
+</head>
+<body>
+    <h1>Add New Auction</h1>
+    <form method="POST" enctype="multipart/form-data">
+        <label>Title:</label>
+        <input type="text" name="title" required><br>
+        <label>Description:</label>
+        <textarea name="description" required></textarea><br>
+        <label>Starting Price:</label>
+        <input type="number" step="0.01" name="starting_price" required><br>
+        <label>Upload an Image (Max: 5 MB):</label>
+        <input type="file" name="image" accept="image/*" required><br>
+        <label>End Time:</label>
+        <input type="datetime-local" name="end_time" required><br>
+        <button type="submit">Add Auction</button>
+    </form>
+</body>
+</html>
