@@ -2,15 +2,92 @@
 <html>
 <head>
     <title>Admin Login</title>
+    <style>
+        /* General body styling */
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(120deg, #3498db, #8e44ad);
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        /* Centered container */
+        .login-container {
+            background-color: white;
+            padding: 20px 40px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+        }
+
+        /* Heading styling */
+        .login-container h1 {
+            font-size: 1.8rem;
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        /* Input field styling */
+        .login-container label {
+            display: block;
+            font-weight: bold;
+            text-align: left;
+            margin-bottom: 5px;
+        }
+
+        .login-container input {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 15px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 1rem;
+        }
+
+        /* Button styling */
+        .login-container button {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .login-container button:hover {
+            background-color: #2c81ba;
+        }
+
+        /* Responsive styling */
+        @media (max-width: 600px) {
+            .login-container {
+                padding: 15px 20px;
+            }
+
+            .login-container h1 {
+                font-size: 1.5rem;
+            }
+        }
+    </style>
 </head>
 <body>
-    <h1>Admin Login</h1>
-    <form method="POST">
-        <label>Username:</label>
-        <input type="text" name="username" required><br>
-        <label>Password:</label>
-        <input type="password" name="password" required><br>
-        <button type="submit">Login</button>
-    </form>
+    <div class="login-container">
+        <h1>Admin Login</h1>
+        <form method="POST">
+            <label for="username">Username:</label>
+            <input type="text" id="username" name="username" required>
+            <label for="password">Password:</label>
+            <input type="password" id="password" name="password" required>
+            <button type="submit">Login</button>
+        </form>
+    </div>
 </body>
 </html>

@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Search Results</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f9f9f9;
+            color: #333;
+        }
+        h1 {
+            text-align: center;
+            color: #444;
+            margin: 20px 0;
+        }
+        .auction-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            padding: 20px;
+            margin: 0 auto;
+            max-width: 1200px;
+        }
+        .auction-card {
+            background-color: #fff;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .auction-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+        .auction-image {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+        }
+        .auction-card h3 {
+            font-size: 1.5rem;
+            color: #555;
+            margin: 10px 15px;
+        }
+        .auction-card p {
+            font-size: 1rem;
+            color: #666;
+            margin: 5px 15px;
+        }
+        .auction-card p:last-child {
+            margin-bottom: 15px;
+        }
+        p.no-results {
+            text-align: center;
+            font-size: 1.2rem;
+            color: #777;
+        }
+        @media (max-width: 768px) {
+            .auction-grid {
+                grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1>Search Results</h1>
+    <a style="display: block; text-align: center; margin-bottom: 20px;" href="{{ url_for('home') }}">Back to Auctions</a>
+    {% if auctions %}
+        <div class="auction-grid">
+            {% for auction in auctions %}
+                <div class="auction-card">
+                    <img src="{{ url_for('static', filename=auction.image) }}" alt="{{ auction.title }}" class="auction-image">
+                    <h3>{{ auction.title }}</h3>
+                    <p>{{ auction.description }}</p>
+                    <p>Starting Price: {{ auction.starting_price }}</p>
+                    <p>Ends: {{ auction.end_time }}</p>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <p class="no-results">No auctions found.</p>
+    {% endif %}
+</body>
+</html>

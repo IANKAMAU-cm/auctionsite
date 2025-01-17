@@ -22,28 +22,76 @@
             flex-direction: column;
         }
 
-        header {
-            background-color: #333;
-            color: #fff;
-            padding: 10px 20px;
+        
+        /* Header Styling */
+        .main-header {
+            background-color: #343a40;
+            color: #ffffff;
+            padding: 0.5rem 1rem;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
         }
 
-        nav {
+        /* Navbar Styling */
+        .navbar {
             display: flex;
             justify-content: space-between;
             align-items: center;
         }
 
-        nav a {
-            color: #fff;
+        /* Navigation Links */
+        .nav-left .nav-logo {
+            color: #ffffff;
             text-decoration: none;
-            margin: 0 10px;
+            font-size: 1.5rem;
             font-weight: bold;
+        }
+
+        .nav-right {
+            display: flex;
+            align-items: center;
+        }
+
+        .nav-link {
+            color: #ffffff;
+            text-decoration: none;
+            margin-left: 1rem;
             transition: color 0.3s ease;
         }
 
-        nav a:hover {
-            color: #f39c12;
+        .nav-link:hover {
+            color: #007bff;
+        }
+
+        /* Dropdown Categories */
+        .nav-categories {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: row;
+        }
+
+        .nav-categories li {
+            margin: 0 0.5rem;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .navbar {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .nav-categories {
+                flex-direction: column;
+                margin-top: 1rem;
+            }
+
+            .nav-categories li {
+                margin: 0.5rem 0;
+            }
         }
 
         main {
@@ -111,22 +159,30 @@
     </style>
 </head>
 <body>
-    <header>
-        <nav>
-            <a href="{{ url_for('home') }}">Home</a>
-            <div>
+    <header class="main-header">
+        <nav class="navbar">
+            <div class="nav-left">
+                <a href="{{ url_for('home') }}" class="nav-logo">Home</a>
+            </div>
+            <div class="nav-right">
                 {% if current_user.is_authenticated %}
-                    <a href="{{ url_for('logout') }}">Logout</a>
+                    <ul class="nav-categories">
+                        <li><a href="{{ url_for('view_category', category='Electronics') }}" class="nav-link">Electronics</a></li>
+                        <li><a href="{{ url_for('view_category', category='Furniture') }}" class="nav-link">Furniture</a></li>
+                        <li><a href="{{ url_for('view_category', category='Vehicles') }}" class="nav-link">Vehicles</a></li>
+                        <li><a href="{{ url_for('view_category', category='Real Estate') }}" class="nav-link">Real Estate</a></li>
+                        <li><a href="{{ url_for('view_category', category='Machinery') }}" class="nav-link">Machinery</a></li>
+                    </ul>
+                    <a href="{{ url_for('logout') }}" class="nav-link">Logout</a>
                 {% else %}
-                    <!--<a href="{{ url_for('login') }}">Login</a>-->
-                    <a href="{{ url_for('register') }}">Register</a>
+                    <a href="{{ url_for('register') }}" class="nav-link">Register</a>
                 {% endif %}
                 {% if not User.query.filter_by(is_admin=True).first() %}
-                    <a href="{{ url_for('admin_register') }}">Create Admin Account</a>
+                    <a href="{{ url_for('admin_register') }}" class="nav-link admin-link">Create Admin Account</a>
                 {% endif %}
             </div>
         </nav>
-    </header>
+    </header>    
     <main>
         {% with messages = get_flashed_messages(with_categories=true) %}
             {% if messages %}

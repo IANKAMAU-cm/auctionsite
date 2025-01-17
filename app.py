@@ -1,4 +1,4 @@
-from flask import Flask, render_template, redirect, url_for, flash, request, session
+from flask import Flask, render_template, redirect, url_for, flash, request, session, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime, timedelta
 from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
@@ -108,6 +108,7 @@ def add_auction():
         description = request.form['description']
         starting_price = float(request.form['starting_price'])
         end_time = datetime.strptime(request.form['end_time'], '%Y-%m-%dT%H:%M')
+        category = request.form['category']  # Get selected category
         
         # Handle image upload
         if 'image' not in request.files:
@@ -124,12 +125,13 @@ def add_auction():
             return redirect(request.url)
         
         auction_item = AuctionItem(title=title, description=description,
-                                   starting_price=starting_price, image=image_path, end_time=end_time)
+                                   starting_price=starting_price, image=image_path, end_time=end_time, category=category)
         db.session.add(auction_item)
         db.session.commit()
         flash('Auction added successfully!')
         return redirect(url_for('admin_dashboard'))
-    return render_template('add_auction.html')
+    categories = ['Electronics', 'Furniture', 'Vehicles', 'Real Estate', 'Machinery', 'Featured']
+    return render_template('add_auction.html', categories=categories)
 
 @app.route('/admin/edit-auction/<int:auction_id>', methods=['GET', 'POST'])
 @login_required
@@ -138,11 +140,14 @@ def edit_auction(auction_id):
         flash('Unauthorized access!')
         return redirect(url_for('home'))
     auction_item = AuctionItem.query.get_or_404(auction_id)
+    categories = ['Electronics', 'Furniture', 'Vehicles', 'Real Estate', 'Machinery', 'Featured']  # Predefined categories
+
     if request.method == 'POST':
         auction_item.title = request.form['title']
         auction_item.description = request.form['description']
         auction_item.starting_price = float(request.form['starting_price'])
         auction_item.end_time = datetime.strptime(request.form['end_time'], '%Y-%m-%dT%H:%M')
+        auction_item.category = request.form['category']  # Update category
         
         # Handle image upload
         if 'image' in request.files:
@@ -155,7 +160,7 @@ def edit_auction(auction_id):
         db.session.commit()
         flash('Auction updated successfully!')
         return redirect(url_for('admin_dashboard'))
-    return render_template('edit_auction.html', auction_item=auction_item)
+    return render_template('edit_auction.html', auction_item=auction_item, categories=categories)
 
 @app.route('/admin/delete-auction/<int:auction_id>')
 @login_required
@@ -177,6 +182,61 @@ def view_auctions():
         return redirect(url_for('home'))
     auctions = AuctionItem.query.all()
     return render_template('view_auctions.html', auctions=auctions)
+
+@app.route('/category/<string:category>')
+@login_required
+def view_category(category):
+    auctions = AuctionItem.query.filter_by(category=category).filter(AuctionItem.end_time > datetime.utcnow()).all()
+    return render_template('category.html', auctions=auctions, category=category)
+
+
+@app.route('/search', methods=['GET'])
+@login_required
+def search():
+    query = request.args.get('query', '').strip()
+    category = request.args.get('category', None)
+    min_price = request.args.get('min_price', None, type=float)
+    max_price = request.args.get('max_price', None, type=float)
+    sort_by = request.args.get('sort_by', None)  # e.g., 'ending_soon'
+    
+    # Base query
+    auctions = AuctionItem.query
+    
+    # Filter by query keyword
+    if query:
+        auctions = auctions.filter(AuctionItem.title.ilike(f'%{query}%'))
+    
+    # Filter by category
+    if category:
+        auctions = auctions.filter(AuctionItem.category == category)
+    
+    # Filter by price range
+    if min_price is not None:
+        auctions = auctions.filter(AuctionItem.starting_price >= min_price)
+    if max_price is not None:
+        auctions = auctions.filter(AuctionItem.starting_price <= max_price)
+    
+    # Sort results
+    if sort_by == 'ending_soon':
+        auctions = auctions.order_by(AuctionItem.end_time.asc())
+    elif sort_by == 'price_low_to_high':
+        auctions = auctions.order_by(AuctionItem.starting_price.asc())
+    elif sort_by == 'price_high_to_low':
+        auctions = auctions.order_by(AuctionItem.starting_price.desc())
+    
+    # Execute query
+    auctions = auctions.all()
+    
+    return render_template('search_results.html', auctions=auctions)
+
+
+@app.route('/autocomplete', methods=['GET'])
+@login_required
+def autocomplete():
+    term = request.args.get('term', '').strip()
+    suggestions = AuctionItem.query.filter(AuctionItem.title.ilike(f'%{term}%')).limit(5).all()
+    return jsonify([auction.title for auction in suggestions])
+
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
@@ -228,11 +288,11 @@ def load_user(user_id):
 @app.route('/')
 @login_required
 def home():
-    auctions = AuctionItem.query.filter(AuctionItem.end_time > datetime.now()).all()
+    featured_items = AuctionItem.query.filter_by(category='Featured').all()
     expired_auctions = AuctionItem.query.filter(AuctionItem.end_time < datetime.utcnow()).all()
-    return render_template('home.html', auctions=auctions, expired_auctions=expired_auctions, user= current_user)
+    return render_template('home.html', featured_items=featured_items, expired_auctions=expired_auctions, user= current_user)
 
-# Other routes for login, registration, bidding, etc.
+# Other routes forbidding, etc.
 
 if __name__ == '__main__':
     # Use app.app_context() to create tables

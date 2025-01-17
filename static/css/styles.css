@@ -156,3 +156,131 @@ body, html {
     }
 }
 
+/* Search bar styles */
+.search-bar {
+    margin: 20px;
+    padding: 10px;
+    background-color: #f4f4f4;
+    border-radius: 8px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.search-bar input,
+.search-bar select,
+.search-bar button {
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 16px;
+}
+
+.search-bar button {
+    background-color: #007bff;
+    color: white;
+    cursor: pointer;
+}
+
+.search-bar button:hover {
+    background-color: #0056b3;
+}
+
+
+/* Hero Section */
+.hero {
+    background: linear-gradient(to right, #55a3f7, #6cd9f7);
+    color: white;
+    text-align: center;
+    padding: 50px 20px;
+}
+
+.hero h1 {
+    font-size: 3rem;
+    margin-bottom: 10px;
+}
+
+.hero p {
+    font-size: 1.2rem;
+}
+
+/* Featured Auctions */
+.featured-auctions {
+    text-align: center;
+    padding: 40px 20px;
+    background: #fff;
+}
+
+.featured-auctions h2 {
+    margin-bottom: 20px;
+    font-size: 2rem;
+}
+
+.auction-cards {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    justify-content: center;
+}
+
+.auction-item {
+    background: white;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    padding: 20px;
+    max-width: 250px;
+    text-align: center;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.auction-item:hover {
+    transform: scale(1.05);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.auction-image {
+    max-width: 100%;
+    border-radius: 8px;
+    margin-bottom: 15px;
+}
+
+.auction-title {
+    font-size: 1.2rem;
+    margin-bottom: 10px;
+    color: #007bff;
+}
+
+.auction-price,
+.auction-end {
+    font-size: 0.9rem;
+    color: #666;
+}
+
+/* Testimonials */
+.testimonials {
+    background: #f4f4f4;
+    padding: 40px 20px;
+    text-align: center;
+}
+
+.testimonials h2 {
+    margin-bottom: 20px;
+}
+
+.testimonials p {
+    font-style: italic;
+    color: #555;
+}
+
+/* Statistics */
+.statistics {
+    background: white;
+    padding: 40px 20px;
+    text-align: center;
+}
+
+.statistics p {
+    font-size: 1.2rem;
+    color: #007bff;
+}

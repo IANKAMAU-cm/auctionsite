@@ -4,37 +4,151 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Edit Auction</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <style>
+        /* General body styling */
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #74b9ff, #0984e3);
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        /* Container for the form */
+        .form-container {
+            background-color: #fff;
+            padding: 20px 40px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            width: 100%;
+            max-width: 600px;
+            box-sizing: border-box;
+        }
+
+        /* Heading styling */
+        .form-container h1 {
+            font-size: 1.8rem;
+            margin-bottom: 20px;
+            color: #2d3436;
+            text-align: center;
+        }
+
+        /* Label styling */
+        .form-container label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 5px;
+            color: #2d3436;
+        }
+
+        /* Input, textarea, and select styling */
+        .form-container input[type="text"],
+        .form-container input[type="number"],
+        .form-container input[type="datetime-local"],
+        .form-container input[type="file"],
+        .form-container textarea,
+        .form-container select {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 15px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 1rem;
+            box-sizing: border-box;
+        }
+
+        /* Current image preview styling */
+        .form-container img {
+            display: block;
+            margin: 10px 0;
+            max-width: 100%;
+            height: auto;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+
+        /* Button styling */
+        .form-container button {
+            background-color: #0984e3;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            width: 100%;
+        }
+
+        .form-container button:hover {
+            background-color: #74b9ff;
+        }
+
+        /* Back to auctions link */
+        .form-container a {
+            display: inline-block;
+            text-decoration: none;
+            color: #0984e3;
+            font-weight: bold;
+            margin-top: 15px;
+            text-align: center;
+            width: 100%;
+        }
+
+        .form-container a:hover {
+            text-decoration: underline;
+        }
+
+        /* Responsive design */
+        @media (max-width: 768px) {
+            .form-container {
+                padding: 15px 20px;
+            }
+
+            .form-container h1 {
+                font-size: 1.5rem;
+            }
+        }
+    </style>
 </head>
 <body>
-    <h1>Edit Auction</h1>
-    <form action="{{ url_for('edit_auction', auction_id=auction_item.id) }}" method="POST" enctype="multipart/form-data">
-        <label for="title">Title:</label>
-        <input type="text" id="title" name="title" value="{{ auction_item.title }}" required>
-        <br>
-    
-        <label for="description">Description:</label>
-        <textarea id="description" name="description" required>{{ auction_item.description }}</textarea>
-        <br>
-    
-        <label for="starting_price">Starting Price:</label>
-        <input type="number" id="starting_price" name="starting_price" value="{{ auction_item.starting_price }}" required>
-        <br>
-    
-        <label for="end_time">End Time:</label>
-        <input type="datetime-local" id="end_time" name="end_time" value="{{ auction_item.end_time }}" required>
-        <br>
-    
-        <label for="image">Upload an Image (Max: 5 MB):</label>
-        {% if auction_item.image %}
-            <p>Current Image:</p>
-            <img src="{{ url_for('static', filename='uploads/' + auction_item.image) }}" alt="Auction Image" style="max-width: 200px;">
-        {% endif %}
-        <input type="file" id="image" name="image">
-        <br>
-    
-        <button type="submit">Save Changes</button>
-    </form>
-    <a href="{{ url_for('view_auctions') }}">Back to Auctions</a>
+    <div class="form-container">
+        <h1>Edit Auction</h1>
+        <form action="{{ url_for('edit_auction', auction_id=auction_item.id) }}" method="POST" enctype="multipart/form-data">
+            <label for="title">Title:</label>
+            <input type="text" id="title" name="title" value="{{ auction_item.title }}" required>
+
+            <label for="description">Description:</label>
+            <textarea id="description" name="description" rows="4" required>{{ auction_item.description }}</textarea>
+
+            <label for="starting_price">Starting Price:</label>
+            <input type="number" id="starting_price" name="starting_price" value="{{ auction_item.starting_price }}" required>
+
+            <label for="end_time">End Time:</label>
+            <input type="datetime-local" id="end_time" name="end_time" value="{{ auction_item.end_time }}" required>
+
+            <label>Category:</label>
+            <select name="category" required>
+                {% for category in categories %}
+                    <option value="{{ category }}" {% if category == auction_item.category %}selected{% endif %}>
+                        {{ category }}
+                    </option>
+                {% endfor %}
+            </select>
+
+            <label for="image">Upload an Image (Max: 5 MB):</label>
+            {% if auction_item.image %}
+                <p>Current Image:</p>
+                <img src="{{ url_for('static', filename='uploads/' + auction_item.image) }}" alt="Auction Image">
+            {% endif %}
+            <input type="file" id="image" name="image">
+
+            <button type="submit">Save Changes</button>
+        </form>
+        <a href="{{ url_for('view_auctions') }}">Back to Auctions</a>
+    </div>
 </body>
 </html>

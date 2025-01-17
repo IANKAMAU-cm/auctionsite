@@ -1,18 +1,80 @@
 {% extends 'base.html' %}
 
 {% block content %}
-{% if auctions %}
-    <div class="auction-list">
-        {% for auction in auctions %}
+{% if current_user.is_authenticated %}
+    <h1>Welcome, {{ current_user.username }}</h1>
+<div class="hero">
+    <h1>Discover Incredible Deals</h1>
+    <p>Bid on unique items across various categories!</p>
+    <div class="search-bar">
+        <form action="{{ url_for('search') }}" method="GET" class="search-form">
+            <input type="text" name="query" placeholder="Search for auctions..." list="autocomplete-list" required>
+            
+            <select name="category">
+                <option value="">All Categories</option>
+                {% for category in categories %}
+                    <option value="{{ category }}">{{ category }}</option>
+                {% endfor %}
+            </select>
+            
+            <input type="number" name="min_price" placeholder="Min Price" step="0.01">
+            <input type="number" name="max_price" placeholder="Max Price" step="0.01">
+            
+            <select name="sort_by">
+                <option value="">Sort By</option>
+                <option value="ending_soon">Ending Soon</option>
+                <option value="price_low_to_high">Price: Low to High</option>
+                <option value="price_high_to_low">Price: High to Low</option>
+            </select>
+            
+            <button type="submit">Search</button>
+        </form>
+    </div>
+</div>
+
+<div class="featured-auctions">
+    <h2>Featured Auctions</h2>
+    <div class="auction-cards">
+        {% for auction in featured_items %}
             <div class="auction-item">
                 <img src="{{ url_for('static', filename=auction.image) }}" alt="{{ auction.title }}" class="auction-image">
                 <h2 class="auction-title">{{ auction.title }}</h2>
                 <p class="auction-price">Starting Price: {{ auction.starting_price }}</p>
                 <p class="auction-end">Ends: {{ auction.end_time }}</p>
             </div>
-        {% endfor %}
+        {% endfor %} 
     </div>
+</div>
+
+<div class="testimonials">
+    <h2>What Our Users Say</h2>
+    <p>"This is the best auction platform I've used!" - John D.</p>
+</div>
+
+<div class="statistics">
+    <h2>Platform Highlights</h2>
+    <p>100+ auctions live | 500+ bidders online</p>
+</div>
+
+<script>
+    document.querySelector('input[name="query"]').addEventListener('input', function () {
+        const query = this.value;
+        if (query.length < 2) return; // Start suggesting after 2 characters
+
+        fetch(`/autocomplete?term=${encodeURIComponent(query)}`)
+            .then(response => response.json())
+            .then(suggestions => {
+                const datalist = document.getElementById('autocomplete-list');
+                datalist.innerHTML = '';
+                suggestions.forEach(suggestion => {
+                    const option = document.createElement('option');
+                    option.value = suggestion;
+                    datalist.appendChild(option);
+                });
+            });
+    });
+</script>
+<datalist id="autocomplete-list"></datalist>
 {% else %}
-    <p>No active auctions are available at the moment. Please check back later!</p>
 {% endif %}
 {% endblock %}
