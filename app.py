@@ -186,7 +186,10 @@ def view_auctions():
 @app.route('/category/<string:category>')
 @login_required
 def view_category(category):
-    auctions = AuctionItem.query.filter_by(category=category).filter(AuctionItem.end_time > datetime.utcnow()).all()
+    page = request.args.get('page', 1, type=int)  # Get the page number from query parameters
+    per_page = 10  # Number of items per page
+    
+    auctions = AuctionItem.query.filter_by(category=category).filter(AuctionItem.end_time > datetime.utcnow()).paginate(page=page, per_page=per_page)
     return render_template('category.html', auctions=auctions, category=category)
 
 

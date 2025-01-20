@@ -12,6 +12,23 @@
             </div>
         {% endfor %}
     </div>
+    <!-- Pagination controls -->
+    <div class="pagination">
+        {% if auctions.has_prev %}
+            <a href="{{ url_for('view_category', category=category, page=auctions.prev_num) }}" class="prev">Previous</a>
+        {% endif %}
+        
+        {% for page_num in range(1, auctions.pages + 1) %}
+            <a href="{{ url_for('view_category', category=category, page=page_num) }}"
+               class="{% if page_num == auctions.page %}active{% endif %}">
+                {{ page_num }}
+            </a>
+        {% endfor %}
+        
+        {% if auctions.has_next %}
+            <a href="{{ url_for('view_category', category=category, page=auctions.next_num) }}" class="next">Next</a>
+        {% endif %}
+    </div>
 {% else %}
     <p>No auctions available in this category.</p>
 {% endif %}
