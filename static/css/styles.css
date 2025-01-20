@@ -8,7 +8,7 @@ body, html {
     text-align: center;
     margin: 20px 0;
     font-size: 2rem;
-    color: #333;
+    color: #292828;
 }
 
 .auction-list {
@@ -39,7 +39,7 @@ body, html {
 .auction-image {
     max-width: 100%; /* Ensures responsiveness */
     height: auto;   /* Maintains aspect ratio */
-    max-height: 300px; /* Optional: Restrict maximum height */
+    max-height: 200px; /* Optional: Restrict maximum height */
     object-fit: cover; /* Ensures images fit within the defined box */
     border-radius: 8px; /* Optional: Adds rounded corners */
 }
