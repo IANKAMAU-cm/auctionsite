@@ -193,6 +193,17 @@ def view_category(category):
     return render_template('category.html', auctions=auctions, category=category)
 
 
+
+@app.route('/auction/<int:auction_id>')
+@login_required
+def auction_details(auction_id):
+    # Query the auction item from the database
+    auction = AuctionItem.query.get_or_404(auction_id)
+    
+    # Render the details page
+    return render_template('auction_details.html', auction=auction)
+
+
 @app.route('/search', methods=['GET'])
 @login_required
 def search():

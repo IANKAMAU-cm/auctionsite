@@ -73,6 +73,19 @@
             background-color: #e67e22;
         }
 
+        /* Link styling */
+        .form-container a {
+            display: block;
+            text-align: center;
+            margin-top: 10px;
+            color: #3498db;
+            text-decoration: none;
+        }
+
+        .form-container a:hover {
+            text-decoration: underline;
+        }
+        
         /* Responsive styling */
         @media (max-width: 600px) {
             .form-container {
@@ -113,6 +126,7 @@
 
             <button type="submit">Add Auction</button>
         </form>
+        <a href="{{ url_for('admin_dashboard') }}">Back to Dashboard</a>
     </div>
 </body>
 </html>
