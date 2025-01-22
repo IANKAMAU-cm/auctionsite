@@ -45,6 +45,7 @@
                 <th>Starting Price</th>
                 <th>End Time</th>
                 <th>Actions</th>
+                <th>Upload</th>
             </tr>
         </thead>
         <tbody>
@@ -57,6 +58,12 @@
                 <td>
                     <a href="{{ url_for('edit_auction', auction_id=auction.id) }}">Edit</a>
                     <a href="{{ url_for('delete_auction', auction_id=auction.id) }}">Delete</a>
+                </td>
+                <td>
+                    <form method="POST" action="{{ url_for('upload_additional_images', auction_id=auction.id) }}" enctype="multipart/form-data">
+                        <input type="file" name="additional_images" id="additional_images" multiple>
+                        <button type="submit">Upload</button>
+                    </form>
                 </td>
             </tr>
             {% endfor %}

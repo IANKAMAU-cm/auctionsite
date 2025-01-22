@@ -72,11 +72,13 @@
         <div class="auction-grid">
             {% for auction in auctions %}
                 <div class="auction-card">
-                    <img src="{{ url_for('static', filename=auction.image) }}" alt="{{ auction.title }}" class="auction-image">
-                    <h3>{{ auction.title }}</h3>
-                    <p>{{ auction.description }}</p>
-                    <p>Starting Price: {{ auction.starting_price }}</p>
-                    <p>Ends: {{ auction.end_time }}</p>
+                    <a href="{{ url_for('auction_details', auction_id=auction.id) }}" style="text-decoration: none; color: inherit;">
+                        <img src="{{ url_for('static', filename=auction.image) }}" alt="{{ auction.title }}" class="auction-image">
+                        <h3>{{ auction.title }}</h3>
+                        <p>{{ auction.description }}</p>
+                        <p>Starting Price: {{ auction.starting_price }}</p>
+                        <p>Ends: {{ auction.end_time }}</p>
+                    </a>
                 </div>
             {% endfor %}
         </div>

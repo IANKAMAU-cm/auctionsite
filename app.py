@@ -19,7 +19,7 @@ login_manager = LoginManager(app)
 login_manager.login_view = 'login'
 
 # Import models and forms
-from models import User, AuctionItem, Bid
+from models import User, AuctionItem, Bid, AdditionalImage
 from forms import LoginForm, RegisterForm #AuctionForm, BidForm
 
 
@@ -200,8 +200,27 @@ def auction_details(auction_id):
     # Query the auction item from the database
     auction = AuctionItem.query.get_or_404(auction_id)
     
+    additional_images = AdditionalImage.query.filter_by(auction_item_id=auction_id).all()
     # Render the details page
-    return render_template('auction_details.html', auction=auction)
+    return render_template('auction_details.html', auction=auction, additional_images=additional_images)
+
+
+@app.route('/auction/<int:auction_id>/upload_images', methods=['POST'])
+@login_required
+def upload_additional_images(auction_id):
+    auction = AuctionItem.query.get_or_404(auction_id)
+    images = request.files.getlist('additional_images')
+
+    for image in images:
+        if image:
+            filename = secure_filename(image.filename)
+            image.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+            additional_image = AdditionalImage(image_filename=filename, auction_item=auction)
+            db.session.add(additional_image)
+
+    db.session.commit()
+    flash("Additional images uploaded successfully!", "success")
+    return redirect(url_for('view_auctions'))
 
 
 @app.route('/search', methods=['GET'])
