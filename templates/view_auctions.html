@@ -44,6 +44,15 @@
                 <th>Description</th>
                 <th>Starting Price</th>
                 <th>End Time</th>
+                <th>Serial Number</th>
+                <th>Model</th>
+                <th>Year of Manufacture</th>
+                <th>Color</th>
+                <th>Primary Damage</th>
+                <th>Secondary Damage</th>
+                <th>VIN</th>
+                <th>Odometer</th>
+                <th>Working</th>
                 <th>Actions</th>
                 <th>Upload</th>
             </tr>
@@ -55,6 +64,15 @@
                 <td>{{ auction.description }}</td>
                 <td>{{ auction.starting_price }}</td>
                 <td>{{ auction.end_time }}</td>
+                <td>{{ auction.serial_number or 'Not Applicable' }}</td>
+                <td>{{ auction.model or 'Not Applicable' }}</td>
+                <td>{{ auction.year_of_manufacture or 'Not Applicable' }}</td>
+                <td>{{ auction.color or 'Not Applicable' }}</td>
+                <td>{{ auction.primary_damage or 'Not Applicable' }}</td>
+                <td>{{ auction.secondary_damage or 'Not Applicable' }}</td>
+                <td>{{ auction.VIN or 'Not Applicable' }}</td>
+                <td>{{ auction.odometer or 'Not Applicable' }}</td>
+                <td>{{ auction.working or 'Not Applicable' }}</td>
                 <td>
                     <a href="{{ url_for('edit_auction', auction_id=auction.id) }}">Edit</a>
                     <a href="{{ url_for('delete_auction', auction_id=auction.id) }}">Delete</a>

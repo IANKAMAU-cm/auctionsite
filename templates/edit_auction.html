@@ -146,6 +146,37 @@
             {% endif %}
             <input type="file" id="image" name="image">
 
+            <label for="serial_number">Serial Number:</label>
+            <input type="text" id="serial_number" name="serial_number" value="{{ auction_item.serial_number }}" placeholder="Enter serial number or 'Not Applicable'">
+
+            <label for="model">Model:</label>
+            <input type="text" id="model" name="model" value="{{ auction_item.model }}" placeholder="Enter model or 'Not Applicable'">
+
+            <label for="year_of_manufacture">Year of Manufacture:</label>
+            <input type="text" id="year_of_manufacture" name="year_of_manufacture" value="{{ auction_item.year_of_manufacture }}" placeholder="Enter year or 'Not Applicable'">
+
+            <label for="color">Color:</label>
+            <input type="text" id="color" name="color" value="{{ auction_item.color }}" placeholder="Enter color or 'Not Applicable'">
+
+            <label for="primary_damage">Primary Damage:</label>
+            <input type="text" id="primary_damage" name="primary_damage" value="{{ auction_item.primary_damage }}" placeholder="Enter primary damage or 'Not Applicable'">
+
+            <label for="secondary_damage">Secondary Damage:</label>
+            <input type="text" id="secondary_damage" name="secondary_damage" value="{{ auction_item.secondary_damage }}" placeholder="Enter secondary damage or 'Not Applicable'">
+
+            <label for="VIN">VIN:</label>
+            <input type="text" id="VIN" name="VIN" value="{{ auction_item.VIN }}" placeholder="Enter VIN or 'Not Applicable'">
+
+            <label for="odometer">Odometer:</label>
+            <input type="number" id="odometer" name="odometer" value="{{ auction_item.odometer }}" placeholder="Enter odometer value or 'Not Applicable'">
+
+            <label for="working">Working:</label>
+            <select id="working" name="working">
+                <option value="Yes" {% if auction_item.working == "Yes" %}selected{% endif %}>Yes</option>
+                <option value="No" {% if auction_item.working == "No" %}selected{% endif %}>No</option>
+                <option value="Not Applicable" {% if auction_item.working == "Not Applicable" %}selected{% endif %}>Not Applicable</option>
+            </select>
+
             <button type="submit">Save Changes</button>
         </form>
         <a href="{{ url_for('view_auctions') }}">Back to Auctions</a>

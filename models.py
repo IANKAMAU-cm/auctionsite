@@ -19,6 +19,17 @@ class AuctionItem(db.Model):
     category = db.Column(db.String(50), nullable=False)  # New field for category
     additional_images = db.relationship('AdditionalImage', back_populates='auction_item', cascade="all, delete-orphan")
     
+    # New fields
+    serial_number = db.Column(db.String(50), nullable=True)
+    model = db.Column(db.String(50), nullable=True)
+    year_of_manufacture = db.Column(db.String(4), nullable=True)
+    color = db.Column(db.String(30), nullable=True)
+    primary_damage = db.Column(db.String(50), nullable=True)
+    secondary_damage = db.Column(db.String(50), nullable=True)
+    VIN = db.Column(db.String(17), nullable=True)
+    odometer = db.Column(db.Integer, nullable=True)
+    working = db.Column(db.String(10), nullable=True)  # Yes/No/Not Applicable
+    
 class Bid(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)

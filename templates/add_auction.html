@@ -6,13 +6,13 @@
         /* General body styling */
         body {
             font-family: Arial, sans-serif;
-            background: linear-gradient(120deg,rgb(18, 115, 243), #d35400);
+            background: linear-gradient(120deg, rgb(18, 115, 243), #d35400);
             margin: 0;
             padding: 0;
             display: flex;
             justify-content: center;
             align-items: center;
-            height: 100vh;
+            height: 200vh;
         }
 
         /* Centered container */
@@ -22,7 +22,17 @@
             border-radius: 10px;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
             width: 100%;
-            max-width: 500px;
+            max-width: 900px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            box-sizing: border-box;
+        }
+
+        /* Form sections (left and right) */
+        .form-section {
+            flex: 1;
+            min-width: 300px;
         }
 
         /* Heading styling */
@@ -31,6 +41,7 @@
             color: #333;
             margin-bottom: 20px;
             text-align: center;
+            flex-basis: 100%;
         }
 
         /* Label styling */
@@ -75,9 +86,9 @@
 
         /* Link styling */
         .form-container a {
-            display: block;
+            display: inline-block;
             text-align: center;
-            margin-top: 10px;
+            margin: 10px auto;
             color: #3498db;
             text-decoration: none;
         }
@@ -85,45 +96,89 @@
         .form-container a:hover {
             text-decoration: underline;
         }
-        
+
+        /* Add scrolling for small screens */
+        @media (max-height: 600px) {
+            .form-container {
+                max-height: 90vh; /* Prevent stretching beyond viewport height */
+                overflow-y: auto; /* Enable scrolling for overflow content */
+            }
+        }
+
         /* Responsive styling */
         @media (max-width: 600px) {
             .form-container {
+                flex-direction: column;
                 padding: 15px 20px;
+                width: 90%;
             }
+        }
 
-            .form-container h1 {
-                font-size: 1.5rem;
-            }
+        .form-container h1 {
+            font-size: 1.5rem;
         }
     </style>
 </head>
 <body>
     <div class="form-container">
         <h1>Add New Auction</h1>
-        <form method="POST" enctype="multipart/form-data">
-            <label for="title">Title:</label>
-            <input type="text" id="title" name="title" required>
+        <form method="POST" action="{{ url_for('add_auction') }}" enctype="multipart/form-data">
+            <div class="form-section">
+                <label for="title">Title:</label>
+                <input type="text" id="title" name="title" required>
 
-            <label for="description">Description:</label>
-            <textarea id="description" name="description" rows="4" required></textarea>
+                <label for="description">Description:</label>
+                <textarea id="description" name="description" rows="4" required></textarea>
 
-            <label for="starting_price">Starting Price:</label>
-            <input type="number" id="starting_price" step="0.01" name="starting_price" required>
+                <label for="starting_price">Starting Price:</label>
+                <input type="number" id="starting_price" step="0.01" name="starting_price" required>
 
-            <label for="image">Upload an Image (Max: 5 MB):</label>
-            <input type="file" id="image" name="image" accept="image/*" required>
+                <label for="image">Upload an Image (Max: 5 MB):</label>
+                <input type="file" id="image" name="image" accept="image/*" required>
 
-            <label for="end_time">End Time:</label>
-            <input type="datetime-local" id="end_time" name="end_time" required>
+                <label for="end_time">End Time:</label>
+                <input type="datetime-local" id="end_time" name="end_time" required>
 
-            <label for="category">Category:</label>
-            <select id="category" name="category" required>
-                {% for category in categories %}
-                    <option value="{{ category }}">{{ category }}</option>
-                {% endfor %}
-            </select>
+                <label for="category">Category:</label>
+                <select id="category" name="category" required>
+                    {% for category in categories %}
+                        <option value="{{ category }}">{{ category }}</option>
+                    {% endfor %}
+                </select>
+            </div>
 
+            <div class="form-section">
+                <label for="serial_number">Serial Number:</label>
+                <input type="text" id="serial_number" name="serial_number" placeholder="Enter serial number or 'Not Applicable'">
+
+                <label for="model">Model:</label>
+                <input type="text" id="model" name="model" placeholder="Enter model or 'Not Applicable'">
+
+                <label for="year_of_manufacture">Year of Manufacture:</label>
+                <input type="text" id="year_of_manufacture" name="year_of_manufacture" placeholder="Enter year or 'Not Applicable'">
+
+                <label for="color">Color:</label>
+                <input type="text" id="color" name="color" placeholder="Enter color or 'Not Applicable'">
+
+                <label for="primary_damage">Primary Damage:</label>
+                <input type="text" id="primary_damage" name="primary_damage" placeholder="Enter primary damage or 'Not Applicable'">
+
+                <label for="secondary_damage">Secondary Damage:</label>
+                <input type="text" id="secondary_damage" name="secondary_damage" placeholder="Enter secondary damage or 'Not Applicable'">
+
+                <label for="VIN">VIN:</label>
+                <input type="text" id="VIN" name="VIN" placeholder="Enter VIN or 'Not Applicable'">
+
+                <label for="odometer">Odometer:</label>
+                <input type="number" id="odometer" name="odometer" placeholder="Enter odometer value or 'Not Applicable'">
+
+                <label for="working">Working:</label>
+                <select id="working" name="working">
+                    <option value="Yes">Yes</option>
+                    <option value="No">No</option>
+                    <option value="Not Applicable">Not Applicable</option>
+                </select>
+            </div>
             <button type="submit">Add Auction</button>
         </form>
         <a href="{{ url_for('admin_dashboard') }}">Back to Dashboard</a>

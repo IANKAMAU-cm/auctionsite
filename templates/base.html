@@ -125,9 +125,9 @@
         }
 
         ul li.success {
-            background-color: #d4edda;
-            color: #155724;
-            border: 1px solid #c3e6cb;
+            background-color:rgba(233, 255, 255, 0.51);
+            /*color:rgb(233, 255, 0.51);*/
+            /*border: 1px solidrgb(240, 248, 242);*/
         }
 
         ul li.error {
@@ -192,7 +192,7 @@
     <main>
         {% with messages = get_flashed_messages(with_categories=true) %}
             {% if messages %}
-                <ul>
+                <ul id="flash-messages">
                     {% for category, message in messages %}
                         <li class="{{ category }}">{{ message }}</li>
                     {% endfor %}
@@ -201,6 +201,40 @@
         {% endwith %}
         {% block content %}
         {% endblock %}
+
+        <script>
+            // Automatically remove flash messages after 10 seconds
+            setTimeout(function() {
+                const flashMessages = document.getElementById('flash-messages');
+                if (flashMessages) {
+                    flashMessages.style.transition = 'opacity 0.5s ease';
+                    flashMessages.style.opacity = 0; // Fade out
+
+                    // Completely remove the messages after fade-out
+                    setTimeout(() => flashMessages.remove(), 500);
+                }
+            }, 1000); // 10 seconds
+        </script>
+
+        <style>
+            #flash-messages {
+                position: fixed;
+                top: 10px;
+                right: 10px;
+                z-index: 1000;
+                background-color:rgb(224, 226, 233); /* Adjust based on your categories */
+                
+                padding: 10px;
+                box-shadow: 0 4px 6px rgba(255, 255, 255, 0.52);
+                max-width: 300px;
+                word-wrap: break-word;
+            }
+
+            #flash-messages li {
+                list-style: none;
+                margin: 5px 0;
+            }
+        </style>
     </main>
     <footer>
         &copy; 2025 Online Auction. All rights reserved.

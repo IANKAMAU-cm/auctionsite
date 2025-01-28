@@ -110,6 +110,16 @@ def add_auction():
         end_time = datetime.strptime(request.form['end_time'], '%Y-%m-%dT%H:%M')
         category = request.form['category']  # Get selected category
         
+        serial_number = request.form['serial_number'] or None
+        model = request.form['model'] or None
+        year_of_manufacture = request.form['year_of_manufacture'] or None
+        color = request.form['color'] or None
+        primary_damage = request.form['primary_damage'] or None
+        secondary_damage = request.form['secondary_damage'] or None
+        VIN = request.form['VIN'] or None
+        odometer = request.form['odometer'] or None
+        working = request.form['working'] or None
+        
         # Handle image upload
         if 'image' not in request.files:
             flash('No image file provided!')
@@ -125,7 +135,7 @@ def add_auction():
             return redirect(request.url)
         
         auction_item = AuctionItem(title=title, description=description,
-                                   starting_price=starting_price, image=image_path, end_time=end_time, category=category)
+                                   starting_price=starting_price, image=image_path, end_time=end_time, category=category, serial_number=serial_number, model=model, year_of_manufacture=year_of_manufacture, color=color, primary_damage=primary_damage, secondary_damage=secondary_damage, VIN=VIN, odometer=odometer, working=working)
         db.session.add(auction_item)
         db.session.commit()
         flash('Auction added successfully!')
@@ -148,6 +158,16 @@ def edit_auction(auction_id):
         auction_item.starting_price = float(request.form['starting_price'])
         auction_item.end_time = datetime.strptime(request.form['end_time'], '%Y-%m-%dT%H:%M')
         auction_item.category = request.form['category']  # Update category
+        
+        auction_item.serial_number = request.form['serial_number'] or None
+        auction_item.model = request.form['model'] or None
+        auction_item.year_of_manufacture = request.form['year_of_manufacture'] or None
+        auction_item.color = request.form['color'] or None
+        auction_item.primary_damage = request.form['primary_damage'] or None
+        auction_item.secondary_damage = request.form['secondary_damage'] or None
+        auction_item.VIN = request.form['VIN'] or None
+        auction_item.odometer = request.form['odometer'] or None
+        auction_item.working = request.form['working'] or None
         
         # Handle image upload
         if 'image' in request.files:
