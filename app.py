@@ -7,10 +7,12 @@ from database import db
 import os
 from werkzeug.utils import secure_filename
 import uuid
+from flask_migrate import Migrate
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///auction.db'
 app.config['SECRET_KEY'] = 'your_secret_key'
+migrate = Migrate(app, db) 
 
 # Initialize database with app
 db.init_app(app)
@@ -221,8 +223,13 @@ def auction_details(auction_id):
     auction = AuctionItem.query.get_or_404(auction_id)
     
     additional_images = AdditionalImage.query.filter_by(auction_item_id=auction_id).all()
+    
+    # Get previous and next auction in the same category
+    prev_auction = AuctionItem.query.filter(AuctionItem.id < auction_id, AuctionItem.category == auction.category).order_by(AuctionItem.id.desc()).first()
+    next_auction = AuctionItem.query.filter(AuctionItem.id > auction_id, AuctionItem.category == auction.category).order_by(AuctionItem.id.asc()).first()
+    
     # Render the details page
-    return render_template('auction_details.html', auction=auction, additional_images=additional_images)
+    return render_template('auction_details.html', auction=auction, additional_images=additional_images, prev_auction=prev_auction if prev_auction else None, next_auction=next_auction if next_auction else None)
 
 
 @app.route('/auction/<int:auction_id>/upload_images', methods=['POST'])
