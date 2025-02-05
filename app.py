@@ -121,6 +121,7 @@ def add_auction():
         VIN = request.form['VIN'] or None
         odometer = request.form['odometer'] or None
         working = request.form['working'] or None
+        sale_status='Open'  # Ensure this is set to 'Open'
         
         # Handle image upload
         if 'image' not in request.files:
@@ -137,7 +138,7 @@ def add_auction():
             return redirect(request.url)
         
         auction_item = AuctionItem(title=title, description=description,
-                                   starting_price=starting_price, image=image_path, end_time=end_time, category=category, serial_number=serial_number, model=model, year_of_manufacture=year_of_manufacture, color=color, primary_damage=primary_damage, secondary_damage=secondary_damage, VIN=VIN, odometer=odometer, working=working)
+                                   starting_price=starting_price, image=image_path, end_time=end_time, category=category, serial_number=serial_number, model=model, year_of_manufacture=year_of_manufacture, color=color, primary_damage=primary_damage, secondary_damage=secondary_damage, VIN=VIN, odometer=odometer, working=working, sale_status=sale_status)
         db.session.add(auction_item)
         db.session.commit()
         flash('Auction added successfully!')
@@ -170,6 +171,9 @@ def edit_auction(auction_id):
         auction_item.VIN = request.form['VIN'] or None
         auction_item.odometer = request.form['odometer'] or None
         auction_item.working = request.form['working'] or None
+        
+        if auction_item.sale_status not in ['Sold', 'Closed']:
+            auction_item.sale_status = 'Open'  # Keep it 'Open' unless it’s Sold or Closed
         
         # Handle image upload
         if 'image' in request.files:
@@ -216,7 +220,7 @@ def view_category(category):
 
 
 
-@app.route('/auction/<int:auction_id>')
+@app.route('/auction/<int:auction_id>', methods=['GET', 'POST'])
 @login_required
 def auction_details(auction_id):
     # Query the auction item from the database
@@ -228,8 +232,35 @@ def auction_details(auction_id):
     prev_auction = AuctionItem.query.filter(AuctionItem.id < auction_id, AuctionItem.category == auction.category).order_by(AuctionItem.id.desc()).first()
     next_auction = AuctionItem.query.filter(AuctionItem.id > auction_id, AuctionItem.category == auction.category).order_by(AuctionItem.id.asc()).first()
     
+    bids = Bid.query.filter_by(auction_id=auction.id).order_by(Bid.bid_amount.desc()).all()
+    current_bid = bids[0].bid_amount if bids else auction.starting_price
+    time_left = (auction.end_time - datetime.utcnow()).total_seconds()
+    
+    # Check if auction time has expired
+    if datetime.utcnow() >= auction.end_time and auction.sale_status == 'Open':
+        if bids:
+            auction.sale_status = 'Sold'  # Someone placed a bid
+        else:
+            auction.sale_status = 'Closed'  # No bids placed
+        db.session.commit()
+
+    #user_id = session.get('user_id')
+    #user = User.query.get(user_id)
+    
+    if request.method == 'POST' and auction.sale_status == 'Open':
+        bid_amount = float(request.form['bid_amount'])
+
+        if bid_amount > current_bid:  # Removed membership check
+            new_bid = Bid(bid_amount=bid_amount, user_id=current_user.id, auction_id=auction.id) # Corrected amount to bid_amount and added item_id
+            db.session.add(new_bid)
+            db.session.commit()
+            flash('Bid placed successfully!', 'success')
+        else:
+            flash('Your bid must be higher than the current bid.', 'danger')
+        return redirect(url_for('auction_details', auction_id=auction.id))
+    
     # Render the details page
-    return render_template('auction_details.html', auction=auction, additional_images=additional_images, prev_auction=prev_auction if prev_auction else None, next_auction=next_auction if next_auction else None)
+    return render_template('auction_details.html', auction=auction, additional_images=additional_images, prev_auction=prev_auction if prev_auction else None, next_auction=next_auction if next_auction else None, bids=bids, current_bid=current_bid, time_left=time_left, user=current_user)
 
 
 @app.route('/auction/<int:auction_id>/upload_images', methods=['POST'])

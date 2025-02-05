@@ -29,11 +29,12 @@ class AuctionItem(db.Model):
     VIN = db.Column(db.String(17), nullable=True)
     odometer = db.Column(db.Integer, nullable=True)
     working = db.Column(db.String(10), nullable=True)  # Yes/No/Not Applicable
+    sale_status = db.Column(db.String(20), default='Open')  # Open, Closed, or Sold
     
 class Bid(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-    item_id = db.Column(db.Integer, db.ForeignKey('auction_item.id'), nullable=False)
+    auction_id = db.Column(db.Integer, db.ForeignKey('auction_item.id'), nullable=False)
     bid_amount = db.Column(db.Float, nullable=False)
     timestamp = db.Column(db.DateTime, default=datetime.now)
     

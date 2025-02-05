@@ -139,6 +139,61 @@
             content: " →";
             font-size: 18px;
         }
+
+        .auction-status {
+            flex: 1 1 30%;
+            max-width: 30%;
+            min-width: 200px;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            background-color: #fff;
+            margin-top: 42px; /* Add space above the card */
+        }
+
+        .auction-status p {
+            margin: 10px 0;
+            font-size: 16px;
+        }
+        
+        .status-highest {
+            color: green;
+            font-weight: bold;
+        }
+        
+        .status-outbid {
+            color: red;
+            font-weight: bold;
+        }
+        
+        .bid-form input[type="number"] {
+            padding: 10px;
+            width: 80%;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            margin-bottom: 10px;
+        }
+        
+        .place-bid-btn {
+            background: #007bff;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        
+        .place-bid-btn:hover {
+            background: #0056b3;
+        }
+        
+        .auction-closed {
+            color: red;
+            font-weight: bold;
+            font-size: 18px;
+        }
         
     </style>
     <!-- Add Bootstrap CSS -->
@@ -247,6 +302,58 @@
             <p><strong>Working:</strong> {{ auction.working }}</p>
             {% endif %}
         </div>
+
+        <div class="auction-status">
+            <p><strong>Current Bid:</strong> KSH{{ current_bid }}</p>
+            <p><strong>Time Left:</strong> <span id="countdown">{{ time_left }}</span> seconds</p>
+            <p><strong>Sale Status:</strong> 
+                {% if auction.sale_status == 'Open' %}
+                    <span style="color: green;">Open</span>
+                {% elif auction.sale_status == 'Sold' %}
+                    <span style="color: blue;">Sold</span>
+                {% else %}
+                    <span style="color: red;">Closed</span>
+                {% endif %}
+            </p>
+            {% if bids %}
+                {% if user and bids[0].user_id == user.id %}
+                    <p>Bid Status: You are the highest bidder!</p>
+                {% else %}
+                    <p>Bid Status: You’ve been outbid.</p>
+                {% endif %}
+            {% else %}
+                <p>Bid Status: No bids yet.</p>
+            {% endif %}
+
+            {% if auction.sale_status == 'Open' %}
+                <form method="POST" class="bid-form">
+                    <input type="number" name="bid_amount" step="0.01" placeholder="Enter Your Bid" required>
+                    <button type="submit" class="place-bid-btn">Place Bid</button>
+                </form>
+            {% else %}
+                <p class="auction-closed">Auction Closed</p>
+            {% endif %}
+
+        </div>
+    
+        
+    
+    
+        <script>
+            // Countdown Timer
+            let countdown = document.getElementById('countdown');
+            let timeLeft = parseInt(countdown.innerText);
+        
+            let timer = setInterval(() => {
+                if (timeLeft <= 0) {
+                    clearInterval(timer);
+                    countdown.innerText = 'Auction Ended';
+                } else {
+                    timeLeft--;
+                    countdown.innerText = timeLeft + ' seconds';
+                }
+            }, 1000);
+        </script>
     </div>
 
     <!-- Add Bootstrap JS -->
