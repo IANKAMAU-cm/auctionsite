@@ -48,7 +48,7 @@
 
         .auction-details-card {
             flex: 1 1 30%;
-            max-width: 30%;
+            max-width: 28%;
             min-width: 300px;
             padding: 20px;
             border: 1px solid #ddd;
@@ -143,7 +143,7 @@
         .auction-status {
             flex: 1 1 30%;
             max-width: 30%;
-            min-width: 200px;
+            min-width: 300px;
             padding: 20px;
             border: 1px solid #ddd;
             border-radius: 8px;
@@ -305,7 +305,7 @@
 
         <div class="auction-status">
             <p><strong>Current Bid:</strong> KSH{{ current_bid }}</p>
-            <p><strong>Time Left:</strong> <span id="countdown">{{ time_left }}</span> seconds</p>
+            <p><strong>Time Left:</strong> <span id="countdown">{{ time_left }}</span></p>
             <p><strong>Sale Status:</strong> 
                 {% if auction.sale_status == 'Open' %}
                     <span style="color: green;">Open</span>
@@ -344,16 +344,29 @@
             let countdown = document.getElementById('countdown');
             let timeLeft = parseInt(countdown.innerText);
         
-            let timer = setInterval(() => {
+            function formatTime(seconds) {
+                const days = Math.floor(seconds / (24 * 60 * 60));
+                const hours = Math.floor((seconds % (24 * 60 * 60)) / (60 * 60));
+                const minutes = Math.floor((seconds % (60 * 60)) / 60);
+                const secs = seconds % 60;
+        
+                return `${days}d ${hours}h ${minutes}m ${secs}s`;
+            }
+        
+            function updateCountdown() {
                 if (timeLeft <= 0) {
                     clearInterval(timer);
                     countdown.innerText = 'Auction Ended';
                 } else {
+                    countdown.innerText = formatTime(timeLeft);
                     timeLeft--;
-                    countdown.innerText = timeLeft + ' seconds';
                 }
-            }, 1000);
+            }
+        
+            updateCountdown(); // Initial display
+            let timer = setInterval(updateCountdown, 1000);
         </script>
+        
     </div>
 
     <!-- Add Bootstrap JS -->
