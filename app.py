@@ -8,6 +8,7 @@ import os
 from werkzeug.utils import secure_filename
 import uuid
 from flask_migrate import Migrate
+import pytz
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///auction.db'
@@ -24,6 +25,8 @@ login_manager.login_view = 'login'
 from models import User, AuctionItem, Bid, AdditionalImage
 from forms import LoginForm, RegisterForm #AuctionForm, BidForm
 
+# Define Nairobi timezone
+nairobi_tz = pytz.timezone("Africa/Nairobi")
 
 UPLOAD_FOLDER = 'static/uploads'  # Folder to store uploaded images
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
@@ -109,7 +112,10 @@ def add_auction():
         title = request.form['title']
         description = request.form['description']
         starting_price = float(request.form['starting_price'])
-        end_time = datetime.strptime(request.form['end_time'], '%Y-%m-%dT%H:%M')
+        end_time_naive = datetime.strptime(request.form['end_time'], '%Y-%m-%dT%H:%M')  # Parse from form
+        end_time_nairobi = nairobi_tz.localize(end_time_naive)  # Attach Nairobi timezone
+        end_time_utc = end_time_nairobi.astimezone(pytz.utc)  # Convert to UTC
+    
         category = request.form['category']  # Get selected category
         
         serial_number = request.form['serial_number'] or None
@@ -138,7 +144,7 @@ def add_auction():
             return redirect(request.url)
         
         auction_item = AuctionItem(title=title, description=description,
-                                   starting_price=starting_price, image=image_path, end_time=end_time, category=category, serial_number=serial_number, model=model, year_of_manufacture=year_of_manufacture, color=color, primary_damage=primary_damage, secondary_damage=secondary_damage, VIN=VIN, odometer=odometer, working=working, sale_status=sale_status)
+                                   starting_price=starting_price, image=image_path, end_time=end_time_utc, category=category, serial_number=serial_number, model=model, year_of_manufacture=year_of_manufacture, color=color, primary_damage=primary_damage, secondary_damage=secondary_damage, VIN=VIN, odometer=odometer, working=working, sale_status=sale_status)
         db.session.add(auction_item)
         db.session.commit()
         flash('Auction added successfully!')
@@ -153,13 +159,16 @@ def edit_auction(auction_id):
         flash('Unauthorized access!')
         return redirect(url_for('home'))
     auction_item = AuctionItem.query.get_or_404(auction_id)
+    end_time_naive = datetime.strptime(request.form['end_time'], '%Y-%m-%dT%H:%M')
+    end_time_nairobi = nairobi_tz.localize(end_time_naive)
+    end_time_utc = end_time_nairobi.astimezone(pytz.utc)
     categories = ['Electronics', 'Furniture', 'Vehicles', 'Real Estate', 'Machinery', 'Featured']  # Predefined categories
 
     if request.method == 'POST':
         auction_item.title = request.form['title']
         auction_item.description = request.form['description']
         auction_item.starting_price = float(request.form['starting_price'])
-        auction_item.end_time = datetime.strptime(request.form['end_time'], '%Y-%m-%dT%H:%M')
+        auction_item.end_time = end_time_utc  # Save in UTC
         auction_item.category = request.form['category']  # Update category
         
         auction_item.serial_number = request.form['serial_number'] or None
@@ -236,6 +245,9 @@ def auction_details(auction_id):
     current_bid = bids[0].bid_amount if bids else auction.starting_price
     time_left = (auction.end_time - datetime.utcnow()).total_seconds()
     
+     # **Convert `end_time` to UTC ISO format for JavaScript**
+    auction_end_utc = auction.end_time.strftime('%Y-%m-%dT%H:%M:%SZ')
+    
     # Check if auction time has expired
     if datetime.utcnow() >= auction.end_time and auction.sale_status == 'Open':
         if bids:
@@ -260,7 +272,7 @@ def auction_details(auction_id):
         return redirect(url_for('auction_details', auction_id=auction.id))
     
     # Render the details page
-    return render_template('auction_details.html', auction=auction, additional_images=additional_images, prev_auction=prev_auction if prev_auction else None, next_auction=next_auction if next_auction else None, bids=bids, current_bid=current_bid, time_left=time_left, user=current_user)
+    return render_template('auction_details.html', auction=auction, additional_images=additional_images, prev_auction=prev_auction if prev_auction else None, next_auction=next_auction if next_auction else None, bids=bids, current_bid=current_bid, time_left=time_left, auction_end_utc=auction_end_utc, user=current_user)
 
 
 @app.route('/auction/<int:auction_id>/upload_images', methods=['POST'])

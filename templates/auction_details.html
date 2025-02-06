@@ -305,7 +305,7 @@
 
         <div class="auction-status">
             <p><strong>Current Bid:</strong> KSH{{ current_bid }}</p>
-            <p><strong>Time Left:</strong> <span id="countdown">{{ time_left }}</span></p>
+            <p><strong>Time Left:</strong> <span id="countdown" data-end-time="{{ auction_end_utc }}"></span></p>
             <p><strong>Sale Status:</strong> 
                 {% if auction.sale_status == 'Open' %}
                     <span style="color: green;">Open</span>
@@ -340,9 +340,11 @@
     
     
         <script>
-            // Countdown Timer
             let countdown = document.getElementById('countdown');
-            let timeLeft = parseInt(countdown.innerText);
+            let endTimeUTC = countdown.getAttribute("data-end-time");
+        
+            // Convert UTC end time to local time
+            let endTime = new Date(endTimeUTC).getTime();
         
             function formatTime(seconds) {
                 const days = Math.floor(seconds / (24 * 60 * 60));
@@ -354,18 +356,21 @@
             }
         
             function updateCountdown() {
+                let now = new Date().getTime();
+                let timeLeft = Math.floor((endTime - now) / 1000); // Convert milliseconds to seconds
+        
                 if (timeLeft <= 0) {
                     clearInterval(timer);
                     countdown.innerText = 'Auction Ended';
                 } else {
                     countdown.innerText = formatTime(timeLeft);
-                    timeLeft--;
                 }
             }
         
             updateCountdown(); // Initial display
             let timer = setInterval(updateCountdown, 1000);
         </script>
+        
         
     </div>
 
