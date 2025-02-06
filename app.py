@@ -22,7 +22,7 @@ login_manager = LoginManager(app)
 login_manager.login_view = 'login'
 
 # Import models and forms
-from models import User, AuctionItem, Bid, AdditionalImage
+from models import User, AuctionItem, Bid, AdditionalImage, Notification
 from forms import LoginForm, RegisterForm #AuctionForm, BidForm
 
 # Define Nairobi timezone
