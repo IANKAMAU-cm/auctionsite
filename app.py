@@ -22,7 +22,7 @@ login_manager = LoginManager(app)
 login_manager.login_view = 'login'
 
 # Import models and forms
-from models import User, AuctionItem, Bid, AdditionalImage
+from models import User, AuctionItem, Bid, AdditionalImage, Notification
 from forms import LoginForm, RegisterForm 
 
 # Define Nairobi timezone
@@ -250,14 +250,25 @@ def auction_details(auction_id):
     
     # Check if auction time has expired
     if datetime.utcnow() >= auction.end_time and auction.sale_status == 'Open':
-        if bids:
+        highest_bid = Bid.query.filter_by(auction_id=auction.id).order_by(Bid.bid_amount.desc()).first()
+
+        if highest_bid:
             auction.sale_status = 'Sold'  # Someone placed a bid
+            winner = User.query.get(highest_bid.user_id)  # Fetch the user from the User table
+            flash('You have won an auction', 'success')
+
+            # Create a notification for the winner
+            notification = Notification(
+                user_id=winner.id,
+                message=f"Congratulations! You won the auction for {auction.title}. Please proceed with payment."
+            )
+            db.session.add(notification)
+
         else:
             auction.sale_status = 'Closed'  # No bids placed
+        
         db.session.commit()
 
-    #user_id = session.get('user_id')
-    #user = User.query.get(user_id)
     
     if request.method == 'POST' and auction.sale_status == 'Open':
         bid_amount = float(request.form['bid_amount'])
@@ -272,8 +283,22 @@ def auction_details(auction_id):
         return redirect(url_for('auction_details', auction_id=auction.id))
     
     # Render the details page
-    return render_template('auction_details.html', auction=auction, additional_images=additional_images, prev_auction=prev_auction if prev_auction else None, next_auction=next_auction if next_auction else None, bids=bids, current_bid=current_bid, time_left=time_left, auction_end_utc=auction_end_utc, user=current_user)
+    return render_template('auction_details.html', auction=auction, additional_images=additional_images, prev_auction=prev_auction if prev_auction else None, next_auction=next_auction if next_auction else None, bids=bids, current_bid=current_bid, time_left=time_left, auction_end_utc=auction_end_utc, user=current_user, user_id=current_user.id, notifications=current_user.notifications)
 
+@app.route('/notifications')
+@login_required
+def get_notifications():
+    notifications = Notification.query.filter_by(user_id=current_user.id, is_read=False).all()
+    return jsonify([{"id": n.id, "message": n.message} for n in notifications])
+
+@app.route('/mark_notifications_read', methods=['POST'])
+@login_required
+def mark_notifications_read():
+    notifications = Notification.query.filter_by(user_id=current_user.id, is_read=False).all()
+    for notification in notifications:
+        notification.is_read = True
+    db.session.commit()
+    return jsonify({"status": "success"})
 
 @app.route('/auction/<int:auction_id>/upload_images', methods=['POST'])
 @login_required
