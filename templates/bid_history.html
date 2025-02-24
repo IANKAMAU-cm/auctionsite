@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bid History</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+        }
+
+        .sidebar {
+            width: 200px;
+            background-color:rgb(75, 188, 233);
+            padding: 15px;
+            height: 100vh;
+        }
+
+        .sidebar a {
+            display: block;
+            padding: 10px;
+            margin: 5px 0;
+            text-decoration: none;
+            color: black;
+            background-color: #ddd;
+            border-radius: 5px;
+        }
+
+        .sidebar a:hover {
+            background-color: #bbb;
+        }
+
+        .content {
+            flex-grow: 1;
+            padding: 20px;
+            background-color: #f1f1f1;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        table, th, td {
+            border: 1px solid black;
+            padding: 10px;
+            text-align: left;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .sort-controls {
+            margin-top: 10px;
+        }
+
+        .pagination {
+            margin-top: 10px;
+        }
+
+        .pagination button {
+            padding: 5px 10px;
+            margin: 2px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Left Sidebar -->
+    <div class="sidebar">
+        <h3>Bid History</h3>
+        <a href="#" onclick="showTable('current-bids')">Current Bids</a>
+        <a href="#" onclick="showTable('winning-bids')">Winning Bids</a>
+        <a href="#" onclick="showTable('losing-bids')">Losing Bids</a>
+        <a href="#" onclick="showTable('past-bids')">Past Bids</a>
+        <a href="{{ url_for('home') }}">Back to Home</a>
+    </div>
+
+    <!-- Right Content Area -->
+    <div class="content">
+        <h1>Bid History</h1>
+
+        <!-- Current Bids Table -->
+        <div id="current-bids" class="table-section">
+            <h2>Current Bids</h2>
+            <table>
+                <tr>
+                    <th>Item</th>
+                    <th>Bid Amount</th>
+                    <th>Auction Status</th>
+                    <th>Bid Status</th>
+                    <th>Auction End</th>
+                </tr>
+                {% for bid in current_bids %}
+                <tr>
+                    <td>{{ bid.item }}</td>
+                    <td>{{ bid.bid_amount }}</td>
+                    <td>{{ bid.auction_status }}</td>
+                    <td>{{ bid.bid_status }}</td>
+                    <td>{{ bid.auction_end }}</td>
+                </tr>
+                {% endfor %}
+            </table>
+        </div>
+
+        <!-- Winning Bids Table -->
+        <div id="winning-bids" class="table-section hidden">
+            <h2>Winning Bids</h2>
+            <table>
+                <tr>
+                    <th>Item</th>
+                    <th>Bid Amount</th>
+                    <th>Auction End</th>
+                </tr>
+                {% for bid in winning_bids %}
+                <tr>
+                    <td>{{ bid.item }}</td>
+                    <td>{{ bid.bid_amount }}</td>
+                    <td>{{ bid.auction_end }}</td>
+                </tr>
+                {% endfor %}
+            </table>
+        </div>
+
+        <!-- Losing Bids Table -->
+        <div id="losing-bids" class="table-section hidden">
+            <h2>Losing Bids</h2>
+            <table>
+                <tr>
+                    <th>Item</th>
+                    <th>Bid Amount</th>
+                    <th>Auction End</th>
+                </tr>
+                {% for bid in losing_bids %}
+                <tr>
+                    <td>{{ bid.item }}</td>
+                    <td>{{ bid.bid_amount }}</td>
+                    <td>{{ bid.auction_end }}</td>
+                </tr>
+                {% endfor %}
+            </table>
+        </div>
+
+        <!-- Past Bids Table -->
+        <div id="past-bids" class="table-section hidden">
+            <h2>Past Bids</h2>
+            
+            <!-- Sorting Controls -->
+            <div class="sort-controls">
+                <label>Sort By:</label>
+                <select id="sort-options" onchange="sortTable()">
+                    <option value="amount-asc">Amount (Low to High)</option>
+                    <option value="amount-desc">Amount (High to Low)</option>
+                    <option value="date-asc">Date (Oldest First)</option>
+                    <option value="date-desc">Date (Newest First)</option>
+                </select>
+            </div>
+
+            <table id="past-bids-table">
+                <tr>
+                    <th>Item</th>
+                    <th>Bid Amount</th>
+                    <th>Result</th>
+                    <th>Auction End</th>
+                </tr>
+                {% for bid in bid_history %}
+                <tr>
+                    <td>{{ bid.item }}</td>
+                    <td data-amount="{{ bid.bid_amount }}">{{ bid.bid_amount }}</td>
+                    <td>{{ bid.bid_status }}</td>
+                    <td data-date="{{ bid.auction_end }}">{{ bid.auction_end }}</td>
+                </tr>
+                {% endfor %}
+            </table>
+
+            <!-- Pagination Controls -->
+            <div class="pagination">
+                <button onclick="prevPage()">Previous</button>
+                <span id="page-number">Page 1</span>
+                <button onclick="nextPage()">Next</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentPage = 1;
+        const rowsPerPage = 5;
+        
+        function showTable(tableId) {
+            document.querySelectorAll('.table-section').forEach(section => {
+                section.classList.add('hidden');
+            });
+            document.getElementById(tableId).classList.remove('hidden');
+
+            if (tableId === 'past-bids') {
+                paginateTable();
+            }
+        }
+
+        function sortTable() {
+            const table = document.getElementById("past-bids-table");
+            const rows = Array.from(table.rows).slice(1);
+            const sortType = document.getElementById("sort-options").value;
+
+            rows.sort((a, b) => {
+                let valA, valB;
+                
+                if (sortType.includes("amount")) {
+                    valA = parseFloat(a.cells[1].dataset.amount);
+                    valB = parseFloat(b.cells[1].dataset.amount);
+                } else {
+                    valA = new Date(a.cells[3].dataset.date);
+                    valB = new Date(b.cells[3].dataset.date);
+                }
+
+                return sortType.endsWith("asc") ? valA - valB : valB - valA;
+            });
+
+            rows.forEach(row => table.appendChild(row));
+        }
+
+        function paginateTable() {
+            const table = document.getElementById("past-bids-table");
+            const rows = Array.from(table.rows).slice(1);
+            const totalPages = Math.ceil(rows.length / rowsPerPage);
+
+            rows.forEach((row, index) => {
+                row.style.display = index >= (currentPage - 1) * rowsPerPage && index < currentPage * rowsPerPage ? "" : "none";
+            });
+
+            document.getElementById("page-number").innerText = `Page ${currentPage} of ${totalPages}`;
+        }
+
+        function nextPage() {
+            const table = document.getElementById("past-bids-table");
+            const rows = table.rows.length - 1;
+
+            if (currentPage < Math.ceil(rows / rowsPerPage)) {
+                currentPage++;
+                paginateTable();
+            }
+        }
+
+        function prevPage() {
+            if (currentPage > 1) {
+                currentPage--;
+                paginateTable();
+            }
+        }
+    </script>
+
+</body>
+</html>

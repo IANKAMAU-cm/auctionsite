@@ -1,6 +1,6 @@
 from flask import Flask, render_template, redirect, url_for, flash, request, session, jsonify
 from flask_sqlalchemy import SQLAlchemy
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, UTC, timezone
 from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
 from database import db
@@ -182,7 +182,7 @@ def edit_auction(auction_id):
         auction_item.working = request.form['working'] or None
         
         if auction_item.sale_status not in ['Sold', 'Closed']:
-            auction_item.sale_status = 'Open'  # Keep it 'Open' unless it’s Sold or Closed
+            auction_item.sale_status = 'Open'  # Keep it 'Open' unless it's Sold or Closed
         
         # Handle image upload
         if 'image' in request.files:
@@ -224,7 +224,8 @@ def view_category(category):
     page = request.args.get('page', 1, type=int)  # Get the page number from query parameters
     per_page = 10  # Number of items per page
     
-    auctions = AuctionItem.query.filter_by(category=category).filter(AuctionItem.end_time > datetime.utcnow()).paginate(page=page, per_page=per_page)
+    auctions = AuctionItem.query.filter_by(category=category).filter(AuctionItem.end_time > datetime.now(UTC)).paginate(page=page, per_page=per_page)
+    print(AuctionItem.query.all())
     return render_template('category.html', auctions=auctions, category=category)
 
 
@@ -235,6 +236,12 @@ def auction_details(auction_id):
     # Query the auction item from the database
     auction = AuctionItem.query.get_or_404(auction_id)
     
+    # Make auction.end_time aware if it's naive
+    if auction.end_time.tzinfo is None:  # Check if it's naive
+        auction_end_time = auction.end_time.replace(tzinfo=UTC)  # Make it aware
+    else:
+        auction_end_time = auction.end_time  # It's already aware
+
     additional_images = AdditionalImage.query.filter_by(auction_item_id=auction_id).all()
     
     # Get previous and next auction in the same category
@@ -243,13 +250,19 @@ def auction_details(auction_id):
     
     bids = Bid.query.filter_by(auction_id=auction.id).order_by(Bid.bid_amount.desc()).all()
     current_bid = bids[0].bid_amount if bids else auction.starting_price
-    time_left = (auction.end_time - datetime.utcnow()).total_seconds()
+    end_time_aware = auction.end_time.replace(tzinfo=timezone.utc)  # Force it to UTC
+    time_left = (end_time_aware - datetime.now(timezone.utc)).total_seconds()
+
+    print("End Time:", auction.end_time, "TZ:", auction.end_time.tzinfo)
+    print("Current Time:", datetime.now(timezone.utc), "TZ:", datetime.now(timezone.utc).tzinfo)
+
+
     
      # **Convert `end_time` to UTC ISO format for JavaScript**
     auction_end_utc = auction.end_time.strftime('%Y-%m-%dT%H:%M:%SZ')
     
     # Check if auction time has expired
-    if datetime.utcnow() >= auction.end_time and auction.sale_status == 'Open':
+    if datetime.now(UTC) >= auction_end_time and auction.sale_status == 'Open':
         highest_bid = Bid.query.filter_by(auction_id=auction.id).order_by(Bid.bid_amount.desc()).first()
 
         if highest_bid:
@@ -410,7 +423,7 @@ def logout():
     return redirect(url_for('login'))
 @login_manager.user_loader
 def load_user(user_id):
-    return User.query.get(int(user_id))
+    return db.session.get(User, int(user_id))
 
 
 @app.route('/')
@@ -421,6 +434,47 @@ def home():
     return render_template('home.html', featured_items=featured_items, expired_auctions=expired_auctions, user= current_user)
 
 # Other routes forbidding, etc.
+def get_bid_status(user_id, auction):
+    highest_bid = Bid.query.filter_by(auction_id=auction.id).order_by(Bid.bid_amount.desc()).first()
+    if highest_bid and highest_bid.user_id == user_id:
+        return "Winning"
+    return "Losing"
+
+@app.route('/bid_history')
+@login_required
+def bid_history():
+    # Fetch all bids by the user
+    user_bids = Bid.query.filter_by(user_id=current_user.id).join(AuctionItem).all()
+
+    current_bids = []
+    winning_bids = []
+    losing_bids = []
+    bid_history = []
+
+    for bid in user_bids:
+        auction = db.session.get(AuctionItem, bid.auction_id)
+        status = get_bid_status(current_user.id, auction)
+        
+        bid_info = {
+            "item": auction.title,
+            "bid_amount": bid.bid_amount,
+            "auction_status": auction.sale_status,
+            "bid_status": status,
+            "auction_end": auction.end_time
+        }
+        
+        if auction.sale_status == "Open":
+            if status == "Winning":
+                winning_bids.append(bid_info)
+            else:
+                losing_bids.append(bid_info)
+            current_bids.append(bid_info)
+        else:
+            bid_info["bid_status"] = "Won" if status == "Winning" else "Lost"
+            bid_history.append(bid_info)
+    
+    return render_template('bid_history.html', current_bids=current_bids, winning_bids=winning_bids, 
+                           losing_bids=losing_bids, bid_history=bid_history)
 
 if __name__ == '__main__':
     # Use app.app_context() to create tables

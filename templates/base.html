@@ -162,7 +162,15 @@
                 padding: 10px;
             }
         }
-    </style>
+        .notification-dropdown button {
+            background-color:rgb(12, 140, 238);
+            color: white;
+        }
+
+        .notification-dropdown button:hover {
+            background-color: #0056b3;
+        }
+        </style>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
 </head>
 <body>
@@ -179,17 +187,19 @@
                         <li><a href="{{ url_for('view_category', category='Vehicles') }}" class="nav-link">Vehicles</a></li>
                         <li><a href="{{ url_for('view_category', category='Real Estate') }}" class="nav-link">Real Estate</a></li>
                         <li><a href="{{ url_for('view_category', category='Machinery') }}" class="nav-link">Machinery</a></li>
+                        <li><a href="{{ url_for('bid_history') }}" class="nav-link">My Bids</a></li>
                     </ul>
                     <!-- Notification Bell Icon -->
                     <div class="notification-container">
-                        <i class="fa fa-bell" id="notification-bell"></i>
+                        <i class="fa fa-bell" id="notification-bell" style="color:rgb(5, 141, 245);"></i>
                         <span id="notification-count" class="badge" style="display: none;"></span>
                         <div id="notification-dropdown" class="notification-dropdown" style="display: none;">
                             <ul id="notification-list"></ul>
                             <button id="clear-notifications">Clear Notifications</button>
                         </div>
                     </div>
-                    <a href="{{ url_for('logout') }}" class="nav-link">Logout</a>
+                    <a href="{{ url_for('logout') }}" class="nav-link">
+                        <i class="fas fa-sign-out" style="color:rgb(14, 147, 248);"></i>  <span class="sr-only">Logout</span> </a>
                 {% else %}
                     <a href="{{ url_for('register') }}" class="nav-link">Register</a>
                 {% endif %}
