@@ -58,3 +58,12 @@ class Notification(db.Model):
     user = db.relationship('User', backref=db.backref('notifications', lazy=True))
     
 
+class AlertSubscription(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    method = db.Column(db.String(10), nullable=False)  # 'email' or 'sms'
+    contact = db.Column(db.String(100), unique=True, nullable=False)
+    timestamp = db.Column(db.DateTime, default=datetime.utcnow)
+
+
+    def __repr__(self):
+        return f"<Subscription {self.contact} - {self.method}>"

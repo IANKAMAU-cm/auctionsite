@@ -4,7 +4,7 @@
     <title>{{ auction.title }}</title>
     <style>
         html, body {
-            height: 110%;
+            height: 102%;
             margin: 0;
             font-family: Arial, sans-serif;
         }
@@ -61,6 +61,32 @@
         .auction-details-card p {
             margin: 10px 0;
         }
+
+        .details-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        
+        .detail-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #ddd; /* Optional: Adds a subtle separator */
+            padding-bottom: 5px;
+        }
+        
+        .detail-label {
+            font-weight: bold;
+            flex: 1; /* Takes up available space */
+            text-align: left;
+        }
+        
+        .detail-content {
+            flex: 2; /* Takes up twice the space as label */
+            text-align: right;
+        }
+        
 
         .back-link {
             display: inline-block;
@@ -150,13 +176,27 @@
             box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
             background-color: #fff;
             margin-top: 42px; /* Add space above the card */
+            margin-bottom: 10px; /* Space between status and alert */
         }
 
         .auction-status p {
             margin: 10px 0;
             font-size: 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
         
+        .auction-status p strong {
+            width: 40%; /* Adjust as needed */
+            text-align: left;
+        }
+
+        .auction-status p span {
+            width: 55%;
+            text-align: right;
+        }
+
         .status-highest {
             color: green;
             font-weight: bold;
@@ -193,6 +233,105 @@
             color: red;
             font-weight: bold;
             font-size: 18px;
+        }
+
+        .shipping-details-card {
+            margin-top: -30px; /* Moves it upwards */
+            padding: 15px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            background-color: #fff;
+            flex: 1 1 30%;
+            max-width: 40%;
+            min-width: 300px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+            gap: 8px; /* Adds space between elements */
+        }
+
+        .shipping-details-card p {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .shipping-details-card p strong {
+            width: 32%; /* Adjust as needed */
+            text-align: right;
+        }
+        
+        .shipping-details-card p span {
+            width: 55%;
+            text-align: right;
+        }
+
+        .shipping-details-card label {
+            font-weight: bold;
+        }
+        
+        .shipping-details-card input {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        .alert-subscription {
+            background: #fff;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: -320px; /* Moves it upwards */
+            margin-right: 35px; /* Adds space between cards */
+            max-width: 45%;
+            min-width: 464px;
+            border: 1px solid #ccc;
+            position: relative;
+            right: 0;
+            width: 100%; /* Ensures it stays aligned */
+        }
+        
+        .alert-subscription label {
+            display: block;
+            margin-top: 10px;
+        }
+        
+        .alert-subscription input,
+        .alert-subscription select {
+            width: 100%;
+            padding: 8px;
+            margin-top: 5px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        
+        .alert-subscription button {
+            margin-top: 10px;
+            padding: 8px 15px;
+            background: #007bff;
+            color: white;
+            border: none;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+        
+        .alert-subscription button:hover {
+            background: #0056b3;
+        }
+        
+        /* Position it to the right */
+        @media screen and (min-width: 768px) {
+            .alert-subscription {
+                position: absolute;
+                top: calc(100% + 5px); /* Moves it just below auction-status-card */
+                right: 0;
+                width: 250px; /* Adjust width as needed */
+            }
+        
+            .auction-status-card {
+                position: relative;
+            }
         }
         
     </style>
@@ -260,53 +399,92 @@
         <!-- Auction Details Card -->
         <div class="auction-details-card">
             <h5 style="text-decoration: underline;">Auction Details</h5>
-            <p><strong>Description:</strong> {{ auction.description }}</p>
-            <p><strong>Starting Price:</strong> {{ auction.starting_price }} KSH</p>
-            <p><strong>End Time:</strong> {{ auction.end_time }}</p>
-            
-            {% if auction.serial_number != 'Not Applicable' %}
-            <p><strong>Serial Number:</strong> {{ auction.serial_number }}</p>
-            {% endif %}
-            
-            {% if auction.model != 'Not Applicable' %}
-            <p><strong>Model:</strong> {{ auction.model }}</p>
-            {% endif %}
-            
-            {% if auction.year_of_manufacture != 'Not Applicable' %}
-            <p><strong>Year of manufacture:</strong> {{ auction.year_of_manufacture }}</p>
-            {% endif %}
-            
-            {% if auction.color != 'Not Applicable' %}
-            <p><strong>Color:</strong> {{ auction.color }}</p>
-            {% endif %}
-            
-            {% if auction.primary_damage != 'Not Applicable' %}
-            <p><strong>Primary Damage:</strong> {{ auction.primary_damage }}</p>
-            {% endif %}
-            
-            {% if auction.secondary_damage != 'Not Applicable' %}
-            <p><strong>Secondary Damage:</strong> {{ auction.secondary_damage }}</p>
-            {% endif %}
-            
-            {% if auction.category == 'Vehicles' %}
-                {% if auction.VIN != 'Not Applicable' %}
-                <p><strong>VIN:</strong> {{ auction.VIN }}</p>
+            <div class="details-list">
+                <div class="detail-item">
+                    <span class="detail-label">Description:</span>
+                    <span class="detail-content">{{ auction.description }}</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Starting Price:</span>
+                    <span class="detail-content">{{ auction.starting_price }} KSH</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">End Time:</span>
+                    <span class="detail-content">{{ auction.end_time }}</span>
+                </div>
+        
+                {% if auction.serial_number != 'Not Applicable' %}
+                <div class="detail-item">
+                    <span class="detail-label">Serial Number:</span>
+                    <span class="detail-content">{{ auction.serial_number }}</span>
+                </div>
                 {% endif %}
-                
-                {% if auction.odometer != 'Not Applicable' %}
-                <p><strong>Odometer:</strong> {{ auction.odometer }}</p>
+        
+                {% if auction.model != 'Not Applicable' %}
+                <div class="detail-item">
+                    <span class="detail-label">Model:</span>
+                    <span class="detail-content">{{ auction.model }}</span>
+                </div>
                 {% endif %}
-            {% endif %}
-            
-            {% if auction.working != 'Not Applicable' %}
-            <p><strong>Working:</strong> {{ auction.working }}</p>
-            {% endif %}
+        
+                {% if auction.year_of_manufacture != 'Not Applicable' %}
+                <div class="detail-item">
+                    <span class="detail-label">Year of Manufacture:</span>
+                    <span class="detail-content">{{ auction.year_of_manufacture }}</span>
+                </div>
+                {% endif %}
+
+                {% if auction.color != 'Not Applicable' %}
+                <div class="detail-item">
+                    <span class="detail-label">Color:</span>
+                    <span class="detail-content">{{ auction.color }}</span>
+                </div>
+                {% endif %}
+
+                {% if auction.primary_damage != 'Not Applicable' %}
+                <div class="detail-item">
+                    <span class="detail-label">Primary Damage:</span>
+                    <span class="detail-content">{{ auction.primary_damage }}</span>
+                </div>
+                {% endif %}
+
+                {% if auction.secondary_damage != 'Not Applicable' %}
+                <div class="detail-item">
+                    <span class="detail-label">Secondary Damage:</span>
+                    <span class="detail-content">{{ auction.secondary_damage }}</span>
+                </div>
+                {% endif %}
+
+                {% if auction.category == 'Vehicles' %}
+                    {% if auction.VIN != 'Not Applicable' %}
+                    <div class="detail-item">
+                        <span class="detail-label">VIN:</span>
+                        <span class="detail-content">{{ auction.VIN }}</span>
+                    </div>
+                    {% endif %}
+
+                    {% if auction.odometer != 'Not Applicable' %}
+                    <div class="detail-item">
+                        <span class="detail-label">Odometer:</span>
+                        <span class="detail-content">{{ auction.odometer }} KM</span>
+                    </div>
+                    {% endif %}
+                {% endif %}
+
+                {% if auction.working != 'Not Applicable' %}
+                <div class="detail-item">
+                    <span class="detail-label">Working:</span>
+                    <span class="detail-content">{{ auction.working }}</span>
+                </div>
+                {% endif %}
+            </div>
         </div>
+        
 
         <div class="auction-status">
-            <p><strong>Current Bid:</strong> KSH{{ current_bid }}</p>
+            <p><strong>Current Bid:</strong> <span>KSH {{ current_bid }}</span></p>
             <p><strong>Time Left:</strong> <span id="countdown" data-end-time="{{ auction_end_utc }}"></span></p>
-            <p><strong>Sale Status:</strong> 
+            <p><strong>Sale Status:</strong> <span>
                 {% if auction.sale_status == 'Open' %}
                     <span style="color: green;">Open</span>
                 {% elif auction.sale_status == 'Sold' %}
@@ -314,15 +492,16 @@
                 {% else %}
                     <span style="color: red;">Closed</span>
                 {% endif %}
+                </span>
             </p>
             {% if bids %}
                 {% if user and bids[0].user_id == user.id %}
-                    <p>Bid Status: You are the highest bidder!</p>
+                    <p>Bid Status: <span>You are the highest bidder!</span></p>
                 {% else %}
-                    <p>Bid Status: You’ve been outbid.</p>
+                    <p>Bid Status: <span>You’ve been outbid.</span></p>
                 {% endif %}
             {% else %}
-                <p>Bid Status: No bids yet.</p>
+                <p>Bid Status: <span>No bids yet.</span></p>
             {% endif %}
 
             {% if auction.sale_status == 'Open' %}
@@ -336,8 +515,33 @@
 
         </div>
     
+        <div class="shipping-details-card">
+            <label for="destination">Enter Destination:</label>
+            <input type="text" id="destination" placeholder="Enter town or city" oninput="calculateShipping()">
         
+            <p><strong>Estimated Shipping Cost:</strong> <span id="shipping-cost">KSh 0.00</span></p>
+        </div>
     
+        <div class="alert-subscription">
+            <h5>Get Alerts for Similar Auctions</h5>
+            
+            <label for="alert-method">Select Notification Method:</label>
+            <select id="alert-method">
+                <option value="email">Email</option>
+                <option value="sms">SMS</option>
+            </select>
+        
+            <label for="alert-contact">Enter Email or Phone:</label>
+            <input type="text" id="alert-contact" placeholder="Enter email or phone">
+        
+            {% if user.is_authenticated %}
+                <button id="subscribe-btn" onclick="toggleSubscription()">Subscribe</button>
+                <button id="unsubscribe-btn" onclick="unsubscribeAlert()" style="display: none;">Unsubscribe</button>
+            {% endif %}
+            
+            <p id="alert-message" style="display: none; color: green;"></p>
+        </div>
+        
     
         <script>
             let countdown = document.getElementById('countdown');
@@ -369,6 +573,125 @@
         
             updateCountdown(); // Initial display
             let timer = setInterval(updateCountdown, 1000);
+
+            async function calculateShipping() {
+                let destination = document.getElementById("destination").value;
+                if (destination.length < 3) return; // Prevent unnecessary requests
+            
+                let response = await fetch(`/get_shipping_cost?destination=${destination}`);
+                let data = await response.json();
+            
+                document.getElementById("shipping-cost").innerText = `KSh ${data.cost.toFixed(2)}`;
+            }
+
+            document.addEventListener("DOMContentLoaded", function () {
+                let contact = localStorage.getItem("user_contact") || document.getElementById("alert-contact").value;
+                
+                if (contact) {
+                    console.log("Checking subscription for:", contact);
+                    checkSubscriptionStatus(contact);
+                }
+            
+                document.getElementById("alert-contact").addEventListener("input", function () {
+                    checkSubscriptionStatus(this.value);
+                });
+            });
+            
+            
+            function toggleSubscription() {
+                let method = document.getElementById("alert-method").value;
+                let contact = document.getElementById("alert-contact").value;
+                let messageElement = document.getElementById("alert-message");
+            
+                if (!contact) {
+                    messageElement.style.display = "block";
+                    messageElement.style.color = "red";
+                    messageElement.innerText = "Please enter a valid email or phone number.";
+                    return;
+                }
+            
+                fetch("/subscribe-alert", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ method: method, contact: contact })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    messageElement.style.display = "block";
+                    messageElement.innerText = data.message;
+                    messageElement.style.color = data.status === "subscribed" ? "green" : "red";
+            
+                    if (data.status === "subscribed") {
+                        document.getElementById("subscribe-btn").style.display = "none";
+                        document.getElementById("unsubscribe-btn").style.display = "inline-block";
+                        localStorage.setItem("user_contact", contact);
+                    }
+                })
+                .catch(error => {
+                    messageElement.style.display = "block";
+                    messageElement.style.color = "red";
+                    messageElement.innerText = "An error occurred. Please try again.";
+                });
+            }
+            
+            function unsubscribeAlert() {
+                let contact = document.getElementById("alert-contact").value;
+                let messageElement = document.getElementById("alert-message");
+            
+                if (!contact) {
+                    messageElement.style.display = "block";
+                    messageElement.style.color = "red";
+                    messageElement.innerText = "Please enter your contact to unsubscribe.";
+                    return;
+                }
+            
+                fetch("/unsubscribe-alert", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ contact: contact })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    messageElement.style.display = "block";
+                    messageElement.innerText = data.message;
+                    messageElement.style.color = data.status === "unsubscribed" ? "green" : "red";
+            
+                    if (data.status === "unsubscribed") {
+                        document.getElementById("subscribe-btn").style.display = "inline-block";
+                        document.getElementById("unsubscribe-btn").style.display = "none";
+                        localStorage.removeItem("user_contact");
+                    }
+                })
+                .catch(error => {
+                    messageElement.style.display = "block";
+                    messageElement.style.color = "red";
+                    messageElement.innerText = "An error occurred. Please try again.";
+                });
+            }
+            
+            function checkSubscriptionStatus(contact) {
+                if (!contact) return;  // Avoid checking an empty contact field
+            
+                fetch("/check-subscription", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ contact: contact })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    console.log("Subscription status:", data.status);
+                    if (data.status === "subscribed") {
+                        document.getElementById("subscribe-btn").style.display = "none";
+                        document.getElementById("unsubscribe-btn").style.display = "inline-block";
+                        document.getElementById("alert-contact").value = contact; // Auto-fill contact
+                        localStorage.setItem("user_contact", contact);
+                    } else {
+                        document.getElementById("subscribe-btn").style.display = "inline-block";
+                        document.getElementById("unsubscribe-btn").style.display = "none";
+                        localStorage.removeItem("user_contact");
+                    }
+                });
+            }
         </script>
         
         

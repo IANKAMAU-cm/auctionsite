@@ -9,8 +9,11 @@ from werkzeug.utils import secure_filename
 import uuid
 from flask_migrate import Migrate
 import pytz
+import requests
+from dotenv import load_dotenv
 
 app = Flask(__name__)
+load_dotenv()  # Load environment variables from .env
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///auction.db'
 app.config['SECRET_KEY'] = 'your_secret_key'
 migrate = Migrate(app, db) 
@@ -22,7 +25,7 @@ login_manager = LoginManager(app)
 login_manager.login_view = 'login'
 
 # Import models and forms
-from models import User, AuctionItem, Bid, AdditionalImage, Notification
+from models import User, AuctionItem, Bid, AdditionalImage, Notification, AlertSubscription
 from forms import LoginForm, RegisterForm 
 
 # Define Nairobi timezone
@@ -249,7 +252,7 @@ def auction_details(auction_id):
     next_auction = AuctionItem.query.filter(AuctionItem.id > auction_id, AuctionItem.category == auction.category).order_by(AuctionItem.id.asc()).first()
     
     bids = Bid.query.filter_by(auction_id=auction.id).order_by(Bid.bid_amount.desc()).all()
-    current_bid = bids[0].bid_amount if bids else auction.starting_price
+    current_bid = bids[0].bid_amount if bids else 0.0
     end_time_aware = auction.end_time.replace(tzinfo=timezone.utc)  # Force it to UTC
     time_left = (end_time_aware - datetime.now(timezone.utc)).total_seconds()
 
@@ -312,6 +315,119 @@ def mark_notifications_read():
         notification.is_read = True
     db.session.commit()
     return jsonify({"status": "success"})
+
+# Define fixed distances from Nairobi (in km)
+DISTANCES_FROM_NAIROBI = {
+    "mombasa": 485,
+    "nakuru": 160,
+    "kisumu": 350,
+    "eldoret": 315,
+    "nyeri": 150,
+    "thika": 45,
+    "machakos": 63,
+    "nanyuki": 195,
+}
+
+RATE_PER_KM = 20  # Adjust based on actual rates
+
+@app.route('/get_shipping_cost', methods=['GET'])
+def get_shipping_cost():
+    destination = request.args.get("destination", "").strip().lower()
+    
+    if destination in DISTANCES_FROM_NAIROBI:
+        distance = DISTANCES_FROM_NAIROBI[destination]
+        cost = distance * RATE_PER_KM
+    else:
+        return jsonify({"error": "Destination not found"}), 404
+    
+    return jsonify({"cost": cost})
+
+# Subscribe Route
+# ✅ TextBelt (Free SMS)
+TEXTBELT_API_URL = "https://textbelt.com/text"
+TEXTBELT_API_KEY = os.getenv("TEXTBELT_API_KEY") #Get key from .env file
+
+# ✅ Brevo (Sendinblue) Email API
+BREVO_API_URL = "https://api.brevo.com/v3/smtp/email"
+BREVO_API_KEY = os.getenv("BREVO_API_KEY") # Get key from .env file
+
+@app.route('/subscribe-alert', methods=['POST'])
+def subscribe_alert():
+    data = request.json
+    method = data.get("method")
+    contact = data.get("contact")
+
+    if not method or not contact:
+        return jsonify({"message": "Invalid input. Please provide a contact method and details."}), 400
+
+    # Check if user is already subscribed
+    existing_subscription = AlertSubscription.query.filter_by(contact=contact).first()
+    if existing_subscription:
+        return jsonify({"message": "You're already subscribed!"}), 400
+
+    # Save subscription to database
+    new_subscription = AlertSubscription(method=method, contact=contact)
+    db.session.add(new_subscription)
+    db.session.commit()
+
+    # ✅ Send notification
+    if method == "sms":
+        response = send_sms_notification(contact)
+    elif method == "email":
+        response = send_email_notification(contact)
+    else:
+        response = {"message": "Invalid notification method."}
+
+    return jsonify(response)
+
+# ✅ Function to send SMS using TextBelt
+def send_sms_notification(phone_number):
+    payload = {
+        "phone": phone_number,
+        "message": "You have subscribed to auction alerts!",
+        "key": "textbelt"  # Free tier key
+    }
+    response = requests.post(TEXTBELT_API_URL, data=payload)
+    return response.json()
+
+# ✅ Function to send Email using Brevo
+def send_email_notification(email):
+    headers = {
+        "accept": "application/json",
+        "content-type": "application/json",
+        "api-key": BREVO_API_KEY
+    }
+    payload = {
+        "sender": {"name": "Auction Alerts", "email": "iankamau7036@gmail.com"},
+        "to": [{"email": email}],
+        "subject": "Auction Alert Subscription",
+        "htmlContent": "<p>You have successfully subscribed to auction alerts.</p>"
+    }
+    response = requests.post(BREVO_API_URL, json=payload, headers=headers)
+    return response.json()
+
+@app.route("/unsubscribe-alert", methods=["POST"])
+def unsubscribe_alert():
+    contact = request.json.get("contact")  # Get user email/phone from request
+
+    subscription = AlertSubscription.query.filter_by(contact=contact).first()
+    if subscription:
+        db.session.delete(subscription)
+        db.session.commit()
+        return jsonify({"message": "Unsubscribed successfully", "status": "unsubscribed"})
+    
+    return jsonify({"message": "Subscription not found", "status": "not_found"})
+
+@app.route("/check-subscription", methods=["POST"])
+def check_subscription():
+    contact = request.json.get("contact")
+    subscription = AlertSubscription.query.filter_by(contact=contact).first()
+
+    if subscription:
+        return jsonify({"status": "subscribed", "contact": subscription.contact})
+
+    return jsonify({"status": "not_subscribed"})
+
 
 @app.route('/auction/<int:auction_id>/upload_images', methods=['POST'])
 @login_required
