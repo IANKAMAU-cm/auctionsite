@@ -1,0 +1,16 @@
+<!-- view_bid_history.html -->
+<h2>Bid History for {{ auction.title }}</h2>
+<table>
+    <tr>
+        <th>Bidder</th>
+        <th>Bid Amount</th>
+        <th>Timestamp</th>
+    </tr>
+    {% for bid in bids %}
+    <tr>
+        <td>{{ bid.user.username }}</td>
+        <td>{{ bid.bid_amount }}</td>
+        <td>{{ bid.timestamp }}</td>
+    </tr>
+    {% endfor %}
+</table>

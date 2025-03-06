@@ -1,4 +1,4 @@
-from flask import Flask, render_template, redirect, url_for, flash, request, session, jsonify
+from flask import Flask, render_template, redirect, url_for, flash, request, session, jsonify, abort
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime, timedelta, UTC, timezone
 from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
@@ -221,6 +221,87 @@ def view_auctions():
     auctions = AuctionItem.query.all()
     return render_template('view_auctions.html', auctions=auctions)
 
+#Admin bid management logic
+@app.route('/admin/bids')
+def admin_bid_management():
+    auction_items = db.session.query(AuctionItem).join(Bid).distinct().all()
+    users = db.session.query(User).join(Bid).distinct().all()
+    """Admin dashboard for managing bids."""
+    return render_template('admin_bid_management.html', auction_items=auction_items, users=users)
+
+@app.route('/admin/bids/all')
+def view_all_bids():
+    """View all bids placed by users."""
+    bids = db.session.query(Bid, AuctionItem.title).join(User).join(AuctionItem).all()
+    return render_template('view_all_bids.html', bids=bids)
+
+@app.route('/admin/bids/history/<int:item_id>')
+def view_bid_history(item_id):
+    """View bidding history for a specific auction item."""
+    auction = AuctionItem.query.get(item_id)  # Fetch auction item
+    if not auction:
+        abort(404)  # Handle the case where the auction item does not exist
+    
+    bids = Bid.query.filter_by(auction_id=item_id).order_by(Bid.timestamp.desc()).all()
+    return render_template('view_bid_history.html', bids=bids, item_id=item_id, auction=auction)
+
+@app.route('/admin/bids/user/<int:user_id>')
+def view_user_bidding_history(user_id):
+    #user_id = request.args.get('user_id')  # Get the selected user_id from the form
+    if not user_id:
+        return "User ID is required", 400  # Handle cases where no user is selected
+    
+    """View a specific user's bidding history."""
+    user = User.query.get(user_id)  # Fetch user details
+    if not user:
+        flash("User not found", "danger")
+        return redirect(url_for('admin_dashboard'))
+    
+    user_bids = Bid.query.filter_by(user_id=user_id).order_by(Bid.timestamp.desc()).all()
+    return render_template('view_user_bidding_history.html', bids=user_bids, user=user, user_id=user_id)
+
+
+@app.route('/admin/bids/delete/<int:bid_id>', methods=['POST'])
+def delete_bid(bid_id):
+    """Delete or cancel a bid."""
+    bid = Bid.query.get_or_404(bid_id)
+    db.session.delete(bid)
+    db.session.commit()
+    flash('Bid deleted successfully.', 'success')
+    return redirect(url_for('view_all_bids'))
+
+@app.route('/admin/bids/reports')
+def auction_reports():
+    """Generate auction summary reports."""
+    ongoing_auctions = AuctionItem.query.filter_by(sale_status='Open').all()
+    completed_auctions = AuctionItem.query.filter_by(sale_status='Closed').all()
+    sold_auctions = AuctionItem.query.filter_by(sale_status='sold').all()  # Ensure you have this value in your DB
+
+    return render_template(
+        'auction_reports.html', 
+        ongoing=ongoing_auctions, 
+        completed=completed_auctions, 
+        sold=sold_auctions
+    )
+    
+@app.route('/admin/bids/reports/<report_type>')
+def generate_report(report_type):
+    """Generate specific auction reports based on type."""
+    if report_type == 'ongoing':
+        auctions = AuctionItem.query.filter_by(sale_status='Open').all()
+    elif report_type == 'completed':
+        auctions = AuctionItem.query.filter_by(sale_status='Closed').all()
+    elif report_type == 'sold':
+        auctions = AuctionItem.query.filter_by(sale_status='sold').all()
+    else:
+        flash("Invalid report type", "danger")
+        return redirect(url_for('auction_reports'))
+
+    return render_template('generated_report.html', auctions=auctions, report_type=report_type)
+
+
+
+
 @app.route('/category/<string:category>')
 @login_required
 def view_category(category):
@@ -326,9 +407,32 @@ DISTANCES_FROM_NAIROBI = {
     "thika": 45,
     "machakos": 63,
     "nanyuki": 195,
+    "nairobi": 0,
+    "kakamega": 390,
+    "kericho": 290,
+    "malindi": 520,
+    "kitale": 380,
+    "garissa": 350,
+    "lodwar": 700,
+    "isiolo": 320,
+    "bomet": 270,
+    "busia": 470,    
+    "meru": 300,
+    "kilifi": 490,
+    "lamu": 505,
+    "vihiga": 400,
+    "taita taveta": 380,
+    "wajir": 600,
+    "mandera": 800,
+    "marsabit": 560,
+    "homabay": 380,
+    "migori": 420,
+    "nyamira": 300,
+    "bomet": 270,
+    "busia": 470,
 }
 
-RATE_PER_KM = 20  # Adjust based on actual rates
+RATE_PER_KM = 5  # Adjust based on actual rates
 
 @app.route('/get_shipping_cost', methods=['GET'])
 def get_shipping_cost():

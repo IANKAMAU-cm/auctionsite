@@ -1,0 +1,7 @@
+<!-- auction_reports.html -->
+<h2>Auction Reports</h2>
+<ul>
+    <li><a href="{{ url_for('generate_report', report_type='ongoing') }}">Ongoing Auctions</a></li>
+    <li><a href="{{ url_for('generate_report', report_type='completed') }}">Completed Auctions</a></li>
+    <li><a href="{{ url_for('generate_report', report_type='sold') }}">Completed Auctions</a></li>
+</ul>

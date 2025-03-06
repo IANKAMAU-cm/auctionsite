@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Bid Management</title>
+</head>
+<body>
+    <h1>Admin Bid Management</h1>
+    <nav>
+        <ul>
+            <li><a href="{{ url_for('view_all_bids') }}">View All Bids</a></li>
+            {% for item in auction_items %}
+                <li><a href="{{ url_for('view_bid_history', item_id=item.id) }}">View Bid History for an Item</a></li>
+            {% endfor %}
+            <form action="{{ url_for('view_user_bidding_history', user_id=0) }}" method="get" onsubmit="updateAction(event)">
+                <label for="user_id">Select User:</label>
+                <select name="user_id" id="user_id" required>
+                    {% for user in users %}
+                        <option value="{{ user.id }}">{{ user.username }}</option>
+                    {% endfor %}
+                </select>
+                <button type="submit">View Bidding History</button>
+            </form>            
+            {% for bid in bids %}
+                <li><a href="{{ url_for('delete_bid', bid_id=bid.id) }}">Delete {{ bid.auction_item.title }}</a></li>
+            {% endfor %}
+            <li><a href="{{ url_for('auction_reports') }}">Auction Summary Reports</a></li>
+        </ul>
+    </nav>
+    <script>
+        function updateAction(event) {
+            event.preventDefault();
+            let userId = document.getElementById('user_id').value;
+            if (userId) {
+                window.location.href = `/admin/bids/user/${userId}`;
+            } else {
+                alert("Please select a user.");
+            }
+        }
+    </script>    
+</body>
+</html>

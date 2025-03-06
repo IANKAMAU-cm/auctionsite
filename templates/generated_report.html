@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ report_type.capitalize() }} Auctions Report</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <h2>{{ report_type.capitalize() }} Auctions Report</h2>
+
+    {% if auctions %}
+        <table border="1">
+            <thead>
+                <tr>
+                    <th>Title</th>
+                    <th>Description</th>
+                    <th>Starting Price</th>
+                    <th>Category</th>
+                    <th>End Time</th>
+                    <th>Sale Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for auction in auctions %}
+                    <tr>
+                        <td>{{ auction.title }}</td>
+                        <td>{{ auction.description }}</td>
+                        <td>${{ auction.starting_price }}</td>
+                        <td>{{ auction.category }}</td>
+                        <td>{{ auction.end_time.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+                        <td>{{ auction.sale_status }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p>No auctions found for this report.</p>
+    {% endif %}
+
+    <br>
+    <a href="{{ url_for('auction_reports') }}">Back to Reports</a>
+</body>
+</html>

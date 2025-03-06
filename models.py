@@ -38,6 +38,8 @@ class Bid(db.Model):
     bid_amount = db.Column(db.Float, nullable=False)
     timestamp = db.Column(db.DateTime, default=datetime.now)
     
+    user = db.relationship('User', backref='bids')
+    
     
 class AdditionalImage(db.Model):
     id = db.Column(db.Integer, primary_key=True)

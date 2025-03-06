@@ -1,0 +1,21 @@
+<!-- view_all_bids.html -->
+
+<h2>All Bids</h2>
+<table>
+    <tr>
+        <th>Bid ID</th>
+        <th>Item</th>
+        <th>Bidder</th>
+        <th>Bid Amount</th>
+        <th>Timestamp</th>
+    </tr>
+    {% for bid in bids %}
+    <tr>
+        <td>{{ bid.Bid.id }}</td>
+        <td>{{ bid.title }}</td>
+        <td>{{ bid.Bid.user.username }}</td>
+        <td>{{ bid.Bid.bid_amount }}</td>
+        <td>{{ bid.Bid.timestamp }}</td>
+    </tr>
+    {% endfor %}
+</table>
