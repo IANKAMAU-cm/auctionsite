@@ -224,10 +224,11 @@ def view_auctions():
 #Admin bid management logic
 @app.route('/admin/bids')
 def admin_bid_management():
+    bids = Bid.query.all()
     auction_items = db.session.query(AuctionItem).join(Bid).distinct().all()
     users = db.session.query(User).join(Bid).distinct().all()
     """Admin dashboard for managing bids."""
-    return render_template('admin_bid_management.html', auction_items=auction_items, users=users)
+    return render_template('admin_bid_management.html', auction_items=auction_items, users=users, bids=bids)
 
 @app.route('/admin/bids/all')
 def view_all_bids():
@@ -268,7 +269,7 @@ def delete_bid(bid_id):
     db.session.delete(bid)
     db.session.commit()
     flash('Bid deleted successfully.', 'success')
-    return redirect(url_for('view_all_bids'))
+    return redirect(url_for('admin_bid_management'))
 
 @app.route('/admin/bids/reports')
 def auction_reports():

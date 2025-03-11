@@ -4,15 +4,129 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Bid Management</title>
+    <!--<link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">-->
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+        }
+
+        .container {
+            width: 80%;
+            margin: auto;
+            padding: 20px;
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+            margin-top: 20px;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+
+        nav {
+            background: #333;
+            padding: 15px;
+            text-align: center;
+        }
+
+        nav ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        nav ul li {
+            display: inline;
+            margin-right: 15px;
+        }
+
+        nav ul li a {
+            color: white;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        .bid-section {
+            margin-top: 20px;
+        }
+
+        .bid-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+
+        .bid-table th, .bid-table td {
+            border: 1px solid #ddd;
+            padding: 10px;
+            text-align: left;
+        }
+
+        .bid-table th {
+            background: #555;
+            color: white;
+        }
+
+        form {
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        select, button {
+            padding: 8px;
+            margin: 5px;
+            font-size: 16px;
+        }
+
+        button {
+            background: #28a745;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #218838;
+        }
+
+        .delete-link {
+            color: red;
+            font-weight: bold;
+        }
+
+        .delete-link:hover {
+            text-decoration: underline;
+        }
+
+    </style>
 </head>
 <body>
-    <h1>Admin Bid Management</h1>
+
     <nav>
         <ul>
             <li><a href="{{ url_for('view_all_bids') }}">View All Bids</a></li>
-            {% for item in auction_items %}
-                <li><a href="{{ url_for('view_bid_history', item_id=item.id) }}">View Bid History for an Item</a></li>
-            {% endfor %}
+            <li><a href="{{ url_for('auction_reports') }}">Auction Summary Reports</a></li>
+        </ul>
+    </nav>
+
+    <div class="container">
+        <h1>Admin Bid Management</h1>
+
+        <div class="bid-section">
+            <h2>View Bid History</h2>
+            <ul>
+                {% for item in auction_items %}
+                    <li><a href="{{ url_for('view_bid_history', item_id=item.id) }}">View Bid History for {{ item.title }}</a></li>
+                {% endfor %}
+            </ul>
+        </div>
+
+        <div class="bid-section">
+            <h2>View User Bidding History</h2>
             <form action="{{ url_for('view_user_bidding_history', user_id=0) }}" method="get" onsubmit="updateAction(event)">
                 <label for="user_id">Select User:</label>
                 <select name="user_id" id="user_id" required>
@@ -20,14 +134,42 @@
                         <option value="{{ user.id }}">{{ user.username }}</option>
                     {% endfor %}
                 </select>
-                <button type="submit">View Bidding History</button>
+                <button type="submit">View History</button>
             </form>            
-            {% for bid in bids %}
-                <li><a href="{{ url_for('delete_bid', bid_id=bid.id) }}">Delete {{ bid.auction_item.title }}</a></li>
-            {% endfor %}
-            <li><a href="{{ url_for('auction_reports') }}">Auction Summary Reports</a></li>
-        </ul>
-    </nav>
+        </div>
+
+        <div class="bid-section">
+            <h2>Manage Bids</h2>
+            <table class="bid-table">
+                <thead>
+                    <tr>
+                        <th>Auction Item</th>
+                        <th>Bid Amount</th>
+                        <th>Bidder</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for bid in bids %}
+                        <tr>
+                            <td>{{ bid.auction_item.title }}</td>
+                            <td>Ksh {{ bid.bid_amount }}</td>
+                            <td>{{ bid.user.username }}</td>
+                            <td>
+                                <form action="{{ url_for('delete_bid', bid_id=bid.id) }}" method="POST" style="display:inline;">
+                                    <button type="submit" class="delete-link" onclick="return confirm('Are you sure you want to delete this bid?');">
+                                        Delete
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+    </div>
+
     <script>
         function updateAction(event) {
             event.preventDefault();
@@ -38,6 +180,7 @@
                 alert("Please select a user.");
             }
         }
-    </script>    
+    </script>
+
 </body>
 </html>
