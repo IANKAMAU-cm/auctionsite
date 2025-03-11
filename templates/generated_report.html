@@ -4,13 +4,76 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ report_type.capitalize() }} Auctions Report</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <style>
+        body {
+            background-color: #f8f9fa;
+            font-family: Arial, sans-serif;
+            padding: 20px;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+        }
+        h2 {
+            font-weight: bold;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border: 1px solid #dee2e6;
+        }
+        th {
+            background-color: #007bff;
+            color: white;
+        }
+        tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+        .no-data {
+            text-align: center;
+            font-size: 18px;
+            color: #555;
+            margin-top: 20px;
+        }
+        .back-btn {
+            display: block;
+            text-align: center;
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #28a745;
+            color: white;
+            font-weight: bold;
+            border-radius: 5px;
+            text-decoration: none;
+            transition: 0.3s;
+        }
+        .back-btn:hover {
+            background-color: #218838;
+        }
+    </style>
 </head>
 <body>
+
+<div class="container">
     <h2>{{ report_type.capitalize() }} Auctions Report</h2>
 
     {% if auctions %}
-        <table border="1">
+        <table>
             <thead>
                 <tr>
                     <th>Title</th>
@@ -26,7 +89,7 @@
                     <tr>
                         <td>{{ auction.title }}</td>
                         <td>{{ auction.description }}</td>
-                        <td>${{ auction.starting_price }}</td>
+                        <td>Ksh {{ auction.starting_price }}</td>
                         <td>{{ auction.category }}</td>
                         <td>{{ auction.end_time.strftime('%Y-%m-%d %H:%M:%S') }}</td>
                         <td>{{ auction.sale_status }}</td>
@@ -35,10 +98,14 @@
             </tbody>
         </table>
     {% else %}
-        <p>No auctions found for this report.</p>
+        <p class="no-data">No auctions found for this report.</p>
     {% endif %}
 
-    <br>
-    <a href="{{ url_for('auction_reports') }}">Back to Reports</a>
+    <a href="{{ url_for('auction_reports') }}" class="back-btn">⬅ Back to Reports</a>
+</div>
+
+<!-- Bootstrap JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
 </body>
 </html>
