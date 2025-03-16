@@ -198,8 +198,7 @@
                             <button id="clear-notifications">Clear Notifications</button>
                         </div>
                     </div>
-                    <a href="{{ url_for('logout') }}" class="nav-link">
-                        <i class="fas fa-sign-out" style="color:rgb(14, 147, 248);"></i>  <span class="sr-only">Logout</span> </a>
+                    <a href="{{ url_for('logout') }}" class="nav-link"> <i class="fas fa-sign-out" style="color:rgb(14, 147, 248);"></i> <span class="sr-only">Logout</span> </a>
                 {% else %}
                     <a href="{{ url_for('register') }}" class="nav-link">Register</a>
                 {% endif %}
@@ -287,7 +286,7 @@
                 });
         
                 // Poll for notifications every 10 seconds
-                setInterval(fetchNotifications, 10000);
+                setInterval(fetchNotifications, 300000);
             });
         </script>
 

@@ -11,6 +11,7 @@ from flask_migrate import Migrate
 import pytz
 import requests
 from dotenv import load_dotenv
+from flask_socketio import SocketIO, emit, join_room
 
 app = Flask(__name__)
 load_dotenv()  # Load environment variables from .env
@@ -20,6 +21,9 @@ migrate = Migrate(app, db)
 
 # Initialize database with app
 db.init_app(app)
+
+# Initialize SocketIO
+socketio = SocketIO(app, cors_allowed_origins="*")
 
 login_manager = LoginManager(app)
 login_manager.login_view = 'login'
@@ -301,6 +305,11 @@ def generate_report(report_type):
     return render_template('generated_report.html', auctions=auctions, report_type=report_type)
 
 
+@socketio.on('join_auction')
+def handle_join_auction(data):
+    auction_id = data['auction_id']
+    join_room(f"auction_{auction_id}")
+    print(f"User joined auction room {auction_id}")
 
 
 @app.route('/category/<string:category>')
@@ -366,6 +375,12 @@ def auction_details(auction_id):
             auction.sale_status = 'Closed'  # No bids placed
         
         db.session.commit()
+        
+        # Emit auction update event to notify all clients
+        socketio.emit('auction_update', {
+            'auction_id': auction.id,
+            'sale_status': auction.sale_status
+        }, to=f"auction_{auction.id}")
 
     
     if request.method == 'POST' and auction.sale_status == 'Open':
@@ -376,6 +391,14 @@ def auction_details(auction_id):
             db.session.add(new_bid)
             db.session.commit()
             flash('Bid placed successfully!', 'success')
+            
+            # Emit the new bid to all connected clients
+            socketio.emit('new_bid', {
+                'auction_id': auction.id,
+                'bid_amount': bid_amount,
+                'user_id': current_user.id
+            }, to=f"auction_{auction.id}")
+            
         else:
             flash('Your bid must be higher than the current bid.', 'danger')
         return redirect(url_for('auction_details', auction_id=auction.id))
@@ -707,4 +730,4 @@ if __name__ == '__main__':
         if not User.query.filter_by(is_admin=True).first():
             print("No admin users found. Visit /admin/register to create the first admin account.")
 
-    app.run(debug=True)
+    socketio.run(app, debug=True)

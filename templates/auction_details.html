@@ -692,6 +692,36 @@
                     }
                 });
             }
+
+            var socket = io();
+
+            // Listen for new bid updates
+            socket.on('new_bid', function(data) {
+                if (data.auction_id == {{ auction.id }}) {
+                    document.getElementById("current-bid").innerText = "KSH " + data.bid_amount;
+                }
+            });
+
+            // Listen for auction status updates
+            socket.on('auction_update', function(data) {
+                if (data.auction_id == {{ auction.id }}) {
+                    document.getElementById("sale-status").innerHTML = "<span style='color: blue;'>" + data.sale_status + "</span>";
+                }
+            });
+
+            // Handle real-time bidding form
+            document.getElementById("bid-form").addEventListener("submit", function(event) {
+                event.preventDefault();
+
+                var bidAmount = document.getElementById("bid-amount").value;
+                
+                fetch('/auction/{{ auction.id }}', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: "bid_amount=" + bidAmount
+                }).then(response => response.json())
+                .then(data => console.log(data));
+            });
         </script>
         
         
@@ -699,5 +729,6 @@
 
     <!-- Add Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.5.4/socket.io.js"></script>
 </body>
 </html>
