@@ -11,19 +11,20 @@ from flask_migrate import Migrate
 import pytz
 import requests
 from dotenv import load_dotenv
-from flask_socketio import SocketIO, emit, join_room
+from flask_socketio import SocketIO, emit, join_room, leave_room
 
 app = Flask(__name__)
 load_dotenv()  # Load environment variables from .env
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///auction.db'
 app.config['SECRET_KEY'] = 'your_secret_key'
+app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
 migrate = Migrate(app, db) 
 
 # Initialize database with app
 db.init_app(app)
 
 # Initialize SocketIO
-socketio = SocketIO(app, cors_allowed_origins="*")
+socketio = SocketIO(app, cors_allowed_origins="*", async_mode='gevent')
 
 login_manager = LoginManager(app)
 login_manager.login_view = 'login'
@@ -64,15 +65,15 @@ def load_user(user_id):
 def admin_register():
     # Check if any admin exists
     existing_admin = User.query.filter_by(is_admin=True).first()
-    if existing_admin:
+    if (existing_admin):
         flash('Admin account already exists. Please contact an admin to create additional admin accounts.', 'danger')
         return redirect(url_for('admin_login'))
     
     form = RegisterForm()
-    if form.validate_on_submit():
+    if (form.validate_on_submit()):
         # Check if username already exists
         existing_user = User.query.filter_by(username=form.username.data).first()
-        if existing_user:
+        if (existing_user):
             flash('Username already exists!', 'danger')
             return redirect(url_for('admin_register'))
 
@@ -89,11 +90,11 @@ def admin_register():
 
 @app.route('/admin/login', methods=['GET', 'POST'])
 def admin_login():
-    if request.method == 'POST':
+    if (request.method == 'POST'):
         username = request.form['username']
         password = request.form['password']
         user = User.query.filter_by(username=username).first()
-        if user and user.is_admin and check_password_hash(user.password, password):
+        if (user and user.is_admin and check_password_hash(user.password, password)):
             login_user(user)
             flash('Admin logged in successfully!', 'success')
             return redirect(url_for('admin_dashboard'))
@@ -103,7 +104,7 @@ def admin_login():
 @app.route('/admin/dashboard')
 @login_required
 def admin_dashboard():
-    if not current_user.is_admin:
+    if (not current_user.is_admin):
         flash('Unauthorized access!')
         return redirect(url_for('home'))
     auctions = AuctionItem.query.all()
@@ -112,10 +113,10 @@ def admin_dashboard():
 @app.route('/admin/add-auction', methods=['GET', 'POST'])
 @login_required
 def add_auction():
-    if not current_user.is_admin:
+    if (not current_user.is_admin):
         flash('Unauthorized access!')
         return redirect(url_for('home'))
-    if request.method == 'POST':
+    if (request.method == 'POST'):
         title = request.form['title']
         description = request.form['description']
         starting_price = float(request.form['starting_price'])
@@ -137,11 +138,11 @@ def add_auction():
         sale_status='Open'  # Ensure this is set to 'Open'
         
         # Handle image upload
-        if 'image' not in request.files:
+        if ('image' not in request.files):
             flash('No image file provided!')
             return redirect(request.url)
         file = request.files['image']
-        if file and allowed_file(file.filename):
+        if (file and allowed_file(file.filename)):
             ext = file.filename.rsplit('.', 1)[1].lower()
             unique_filename = f"{uuid.uuid4().hex}.{ext}"
             file.save(os.path.join(app.config['UPLOAD_FOLDER'], unique_filename))
@@ -162,7 +163,7 @@ def add_auction():
 @app.route('/admin/edit-auction/<int:auction_id>', methods=['GET', 'POST'])
 @login_required
 def edit_auction(auction_id):
-    if not current_user.is_admin:
+    if (not current_user.is_admin):
         flash('Unauthorized access!')
         return redirect(url_for('home'))
     auction_item = AuctionItem.query.get_or_404(auction_id)
@@ -171,7 +172,7 @@ def edit_auction(auction_id):
     end_time_utc = end_time_nairobi.astimezone(pytz.utc)
     categories = ['Electronics', 'Furniture', 'Vehicles', 'Real Estate', 'Machinery', 'Featured']  # Predefined categories
 
-    if request.method == 'POST':
+    if (request.method == 'POST'):
         auction_item.title = request.form['title']
         auction_item.description = request.form['description']
         auction_item.starting_price = float(request.form['starting_price'])
@@ -188,13 +189,13 @@ def edit_auction(auction_id):
         auction_item.odometer = request.form['odometer'] or None
         auction_item.working = request.form['working'] or None
         
-        if auction_item.sale_status not in ['Sold', 'Closed']:
+        if (auction_item.sale_status not in ['Sold', 'Closed']):
             auction_item.sale_status = 'Open'  # Keep it 'Open' unless it's Sold or Closed
         
         # Handle image upload
-        if 'image' in request.files:
+        if ('image' in request.files):
             file = request.files['image']
-            if file and allowed_file(file.filename):
+            if (file and allowed_file(file.filename)):
                 filename = secure_filename(file.filename)
                 file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
                 auction_item.image = os.path.join(app.config['UPLOAD_FOLDER'], filename)
@@ -207,7 +208,7 @@ def edit_auction(auction_id):
 @app.route('/admin/delete-auction/<int:auction_id>')
 @login_required
 def delete_auction(auction_id):
-    if not current_user.is_admin:
+    if (not current_user.is_admin):
         flash('Unauthorized access!')
         return redirect(url_for('home'))
     auction_item = AuctionItem.query.get_or_404(auction_id)
@@ -219,7 +220,7 @@ def delete_auction(auction_id):
 @app.route('/admin/view-auctions', methods=['GET'])
 @login_required
 def view_auctions():
-    if not current_user.is_admin:
+    if (not current_user.is_admin):
         flash('Unauthorized access!')
         return redirect(url_for('home'))
     auctions = AuctionItem.query.all()
@@ -244,7 +245,7 @@ def view_all_bids():
 def view_bid_history(item_id):
     """View bidding history for a specific auction item."""
     auction = AuctionItem.query.get(item_id)  # Fetch auction item
-    if not auction:
+    if (not auction):
         abort(404)  # Handle the case where the auction item does not exist
     
     bids = Bid.query.filter_by(auction_id=item_id).order_by(Bid.timestamp.desc()).all()
@@ -253,12 +254,12 @@ def view_bid_history(item_id):
 @app.route('/admin/bids/user/<int:user_id>')
 def view_user_bidding_history(user_id):
     #user_id = request.args.get('user_id')  # Get the selected user_id from the form
-    if not user_id:
+    if (not user_id):
         return "User ID is required", 400  # Handle cases where no user is selected
     
     """View a specific user's bidding history."""
     user = User.query.get(user_id)  # Fetch user details
-    if not user:
+    if (not user):
         flash("User not found", "danger")
         return redirect(url_for('admin_dashboard'))
     
@@ -292,11 +293,11 @@ def auction_reports():
 @app.route('/admin/bids/reports/<report_type>')
 def generate_report(report_type):
     """Generate specific auction reports based on type."""
-    if report_type == 'ongoing':
+    if (report_type == 'ongoing'):
         auctions = AuctionItem.query.filter_by(sale_status='Open').all()
-    elif report_type == 'completed':
+    elif (report_type == 'completed'):
         auctions = AuctionItem.query.filter_by(sale_status='Closed').all()
-    elif report_type == 'sold':
+    elif (report_type == 'sold'):
         auctions = AuctionItem.query.filter_by(sale_status='sold').all()
     else:
         flash("Invalid report type", "danger")
@@ -305,12 +306,30 @@ def generate_report(report_type):
     return render_template('generated_report.html', auctions=auctions, report_type=report_type)
 
 
+@socketio.on('connect')
+def handle_connect():
+    print("Client connected")
+
+@socketio.on('disconnect')
+def handle_disconnect():
+    print("Client disconnected")
+
 @socketio.on('join_auction')
 def handle_join_auction(data):
-    auction_id = data['auction_id']
-    join_room(f"auction_{auction_id}")
-    print(f"User joined auction room {auction_id}")
-
+    auction_id = data.get('auction_id')
+    if (auction_id):
+        room = f"auction_{auction_id}"
+        join_room(room)
+        print(f"Client joined room: {room}")
+        
+        # Optionally send current auction status immediately
+        auction = AuctionItem.query.get(auction_id)
+        if (auction):
+            emit('auction_update', {
+                'auction_id': auction.id,
+                'sale_status': auction.sale_status
+            })
+            print(f"Emitted auction_update for auction {auction.id} with status {auction.sale_status}")
 
 @app.route('/category/<string:category>')
 @login_required
@@ -331,7 +350,7 @@ def auction_details(auction_id):
     auction = AuctionItem.query.get_or_404(auction_id)
     
     # Make auction.end_time aware if it's naive
-    if auction.end_time.tzinfo is None:  # Check if it's naive
+    if (auction.end_time.tzinfo is None):  # Check if it's naive
         auction_end_time = auction.end_time.replace(tzinfo=UTC)  # Make it aware
     else:
         auction_end_time = auction.end_time  # It's already aware
@@ -356,10 +375,10 @@ def auction_details(auction_id):
     auction_end_utc = auction.end_time.strftime('%Y-%m-%dT%H:%M:%SZ')
     
     # Check if auction time has expired
-    if datetime.now(UTC) >= auction_end_time and auction.sale_status == 'Open':
+    if (datetime.now(UTC) >= auction_end_time and auction.sale_status == 'Open'):
         highest_bid = Bid.query.filter_by(auction_id=auction.id).order_by(Bid.bid_amount.desc()).first()
 
-        if highest_bid:
+        if (highest_bid):
             auction.sale_status = 'Sold'  # Someone placed a bid
             winner = User.query.get(highest_bid.user_id)  # Fetch the user from the User table
             flash('You have won an auction', 'success')
@@ -381,12 +400,13 @@ def auction_details(auction_id):
             'auction_id': auction.id,
             'sale_status': auction.sale_status
         }, to=f"auction_{auction.id}")
+        print(f"Emitted auction_update for auction {auction.id} with status {auction.sale_status}")  # Debugging
 
     
-    if request.method == 'POST' and auction.sale_status == 'Open':
+    if (request.method == 'POST' and auction.sale_status == 'Open'):
         bid_amount = float(request.form['bid_amount'])
 
-        if bid_amount > current_bid:  # Removed membership check
+        if (bid_amount > current_bid):  # Removed membership check
             new_bid = Bid(bid_amount=bid_amount, user_id=current_user.id, auction_id=auction.id) # Corrected amount to bid_amount and added item_id
             db.session.add(new_bid)
             db.session.commit()
@@ -398,6 +418,7 @@ def auction_details(auction_id):
                 'bid_amount': bid_amount,
                 'user_id': current_user.id
             }, to=f"auction_{auction.id}")
+            print(f"Emitted new_bid for auction {auction.id} with bid {bid_amount}")  # Debugging
             
         else:
             flash('Your bid must be higher than the current bid.', 'danger')
@@ -462,7 +483,7 @@ RATE_PER_KM = 5  # Adjust based on actual rates
 def get_shipping_cost():
     destination = request.args.get("destination", "").strip().lower()
     
-    if destination in DISTANCES_FROM_NAIROBI:
+    if (destination in DISTANCES_FROM_NAIROBI):
         distance = DISTANCES_FROM_NAIROBI[destination]
         cost = distance * RATE_PER_KM
     else:
@@ -485,12 +506,12 @@ def subscribe_alert():
     method = data.get("method")
     contact = data.get("contact")
 
-    if not method or not contact:
+    if (not method or not contact):
         return jsonify({"message": "Invalid input. Please provide a contact method and details."}), 400
 
     # Check if user is already subscribed
     existing_subscription = AlertSubscription.query.filter_by(contact=contact).first()
-    if existing_subscription:
+    if (existing_subscription):
         return jsonify({"message": "You're already subscribed!"}), 400
 
     # Save subscription to database
@@ -499,9 +520,9 @@ def subscribe_alert():
     db.session.commit()
 
     # ✅ Send notification
-    if method == "sms":
+    if (method == "sms"):
         response = send_sms_notification(contact)
-    elif method == "email":
+    elif (method == "email"):
         response = send_email_notification(contact)
     else:
         response = {"message": "Invalid notification method."}
@@ -539,7 +560,7 @@ def unsubscribe_alert():
     contact = request.json.get("contact")  # Get user email/phone from request
 
     subscription = AlertSubscription.query.filter_by(contact=contact).first()
-    if subscription:
+    if (subscription):
         db.session.delete(subscription)
         db.session.commit()
         return jsonify({"message": "Unsubscribed successfully", "status": "unsubscribed"})
@@ -551,7 +572,7 @@ def check_subscription():
     contact = request.json.get("contact")
     subscription = AlertSubscription.query.filter_by(contact=contact).first()
 
-    if subscription:
+    if (subscription):
         return jsonify({"status": "subscribed", "contact": subscription.contact})
 
     return jsonify({"status": "not_subscribed"})
@@ -588,25 +609,25 @@ def search():
     auctions = AuctionItem.query
     
     # Filter by query keyword
-    if query:
+    if (query):
         auctions = auctions.filter(AuctionItem.title.ilike(f'%{query}%'))
     
     # Filter by category
-    if category:
+    if (category):
         auctions = auctions.filter(AuctionItem.category == category)
     
     # Filter by price range
-    if min_price is not None:
+    if (min_price is not None):
         auctions = auctions.filter(AuctionItem.starting_price >= min_price)
-    if max_price is not None:
+    if (max_price is not None):
         auctions = auctions.filter(AuctionItem.starting_price <= max_price)
     
     # Sort results
-    if sort_by == 'ending_soon':
+    if (sort_by == 'ending_soon'):
         auctions = auctions.order_by(AuctionItem.end_time.asc())
-    elif sort_by == 'price_low_to_high':
+    elif (sort_by == 'price_low_to_high'):
         auctions = auctions.order_by(AuctionItem.starting_price.asc())
-    elif sort_by == 'price_high_to_low':
+    elif (sort_by == 'price_high_to_low'):
         auctions = auctions.order_by(AuctionItem.starting_price.desc())
     
     # Execute query
@@ -626,10 +647,10 @@ def autocomplete():
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     form = RegisterForm()
-    if form.validate_on_submit():
+    if (form.validate_on_submit()):
         # Check if username already exists
         existing_user = User.query.filter_by(username=form.username.data).first()
-        if existing_user:
+        if (existing_user):
             flash('Username already exists!', 'danger')
             return redirect(url_for('register'))
 
@@ -648,9 +669,9 @@ def register():
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     form = LoginForm()
-    if form.validate_on_submit():
+    if (form.validate_on_submit()):
         user = User.query.filter_by(username=form.username.data).first()
-        if user and check_password_hash(user.password, form.password.data):
+        if (user and check_password_hash(user.password, form.password.data)):
             login_user(user)
             flash('Logged in successfully!', 'success')
             return redirect(url_for('home'))
@@ -680,7 +701,7 @@ def home():
 # Other routes forbidding, etc.
 def get_bid_status(user_id, auction):
     highest_bid = Bid.query.filter_by(auction_id=auction.id).order_by(Bid.bid_amount.desc()).first()
-    if highest_bid and highest_bid.user_id == user_id:
+    if (highest_bid and highest_bid.user_id == user_id):
         return "Winning"
     return "Losing"
 
@@ -707,27 +728,105 @@ def bid_history():
             "auction_end": auction.end_time
         }
         
-        if auction.sale_status == "Open":
-            if status == "Winning":
+        if (auction.sale_status == "Open"):
+            if (status == "Winning"):
                 winning_bids.append(bid_info)
             else:
                 losing_bids.append(bid_info)
             current_bids.append(bid_info)
         else:
-            bid_info["bid_status"] = "Won" if status == "Winning" else "Lost"
+            bid_info["bid_status"] = "Won" if (status == "Winning") else "Lost"
             bid_history.append(bid_info)
     
     return render_template('bid_history.html', current_bids=current_bids, winning_bids=winning_bids, 
                            losing_bids=losing_bids, bid_history=bid_history)
 
+@app.route('/update_auction_status/<int:auction_id>', methods=['POST'])
+@login_required
+def update_auction_status(auction_id):
+    auction = AuctionItem.query.get_or_404(auction_id)
+    new_status = request.json.get('status')
+    
+    if (new_status in ['Open', 'Sold', 'Closed']):
+        auction.sale_status = new_status
+        db.session.commit()
+        
+        # Emit to specific auction room
+        socketio.emit('auction_update', {
+            'auction_id': auction.id,
+            'sale_status': auction.sale_status
+        }, to=f"auction_{auction.id}")  # Send only to clients in this auction's room
+        
+        return jsonify({'success': True})
+    
+    return jsonify({'success': False, 'message': 'Invalid status'})
+
+# Example: In a function that checks and updates auction status periodically
+def check_ended_auctions():
+    now = datetime.now(UTC)
+    ended_auctions = AuctionItem.query.filter(
+        AuctionItem.end_time <= now,
+        AuctionItem.sale_status == 'Open'
+    ).all()
+    
+    for auction in ended_auctions:
+        # Determine if auction is sold or just closed
+        if (Bid.query.filter_by(auction_id=auction.id).count() > 0):
+            auction.sale_status = 'Sold'
+        else:
+            auction.sale_status = 'Closed'
+        
+        db.session.commit()
+        
+        # Emit socket event for real-time update
+        socketio.emit('auction_update', {
+            'auction_id': auction.id,
+            'sale_status': auction.sale_status
+        })
+
+@socketio.on('ping_test')
+def handle_ping_test(data):
+    print(f"Received ping_test with data: {data}")
+    emit('pong_test', {'message': 'pong', 'received_data': data})
+    print("Emitted pong_test response")
+
+@app.route('/force_auction_update/<int:auction_id>', methods=['POST'])
+def force_auction_update(auction_id):
+    auction = AuctionItem.query.get_or_404(auction_id)
+    
+    # Toggle between Open and Sold for testing
+    if auction.sale_status == 'Open':
+        auction.sale_status = 'Sold'
+    else:
+        auction.sale_status = 'Open'
+    
+    db.session.commit()
+    
+    # Emit the update event
+    socketio.emit('auction_update', {
+        'auction_id': auction.id,
+        'sale_status': auction.sale_status
+    })
+    
+    print(f"FORCED UPDATE: Emitted auction_update for auction {auction.id} with status {auction.sale_status}")
+    
+    return jsonify({'success': True, 'new_status': auction.sale_status})
+
+@app.route('/auction_status/<int:auction_id>')
+def auction_status(auction_id):
+    auction = AuctionItem.query.get_or_404(auction_id)
+    bids = Bid.query.filter_by(auction_id=auction.id).order_by(Bid.bid_amount.desc()).all()
+    current_bid = bids[0].bid_amount if bids else 0.0
+    return render_template('partials/auction_status.html', auction=auction, current_bid=current_bid, bids=bids)
+
 if __name__ == '__main__':
     # Use app.app_context() to create tables
     with app.app_context():
-        #db.drop_all()
         db.create_all()  # This ensures it works within the application context
         
         # Check for admin existence
-        if not User.query.filter_by(is_admin=True).first():
+        if (not User.query.filter_by(is_admin=True).first()):
             print("No admin users found. Visit /admin/register to create the first admin account.")
-
+    
+    # Use socketio.run instead of app.run
     socketio.run(app, debug=True)

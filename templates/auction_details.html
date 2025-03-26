@@ -337,6 +337,9 @@
     </style>
     <!-- Add Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Add Socket.IO -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.5.4/socket.io.js"></script>
+    <script src="{{ url_for('static', filename='js/auction_updates.js') }}"></script>
 </head>
 <body>
     <header class="main-header">
@@ -358,7 +361,7 @@
             </div>
         </nav>
     </header>  
-    <div class="auction-container">
+    <div class="auction-container" data-auction-id="{{ auction.id }}">
         <!-- Carousel Section -->
         <div class="carousel-container">
             <!--<a href="{{ url_for('view_category', category=auction.category) }}?page={{ request.args.get('page') }}" class="back-link">Back to Auctions</a>-->
@@ -480,11 +483,11 @@
             </div>
         </div>
         
-
+        <!-- Auction Status Card -->
         <div class="auction-status">
-            <p><strong>Current Bid:</strong> <span>KSH {{ current_bid }}</span></p>
+            <p id="current-bid-{{ auction.id }}"><strong>Current Bid:</strong> <span>KSH {{ current_bid }}</span></p>
             <p><strong>Time Left:</strong> <span id="countdown" data-end-time="{{ auction_end_utc }}"></span></p>
-            <p><strong>Sale Status:</strong> <span>
+            <p id="auctionn-status-{{ auction.id }}"><strong>Sale Status:</strong> <span>
                 {% if auction.sale_status == 'Open' %}
                     <span style="color: green;">Open</span>
                 {% elif auction.sale_status == 'Sold' %}
@@ -492,13 +495,12 @@
                 {% else %}
                     <span style="color: red;">Closed</span>
                 {% endif %}
-                </span>
-            </p>
+            </span></p>
             {% if bids %}
                 {% if user and bids[0].user_id == user.id %}
                     <p>Bid Status: <span>You are the highest bidder!</span></p>
                 {% else %}
-                    <p>Bid Status: <span>You’ve been outbid.</span></p>
+                    <p>Bid Status: <span>You've been outbid.</span></p>
                 {% endif %}
             {% else %}
                 <p>Bid Status: <span>No bids yet.</span></p>
@@ -558,7 +560,9 @@
         
                 return `${days}d ${hours}h ${minutes}m ${secs}s`;
             }
-        
+            
+            let timer;
+
             function updateCountdown() {
                 let now = new Date().getTime();
                 let timeLeft = Math.floor((endTime - now) / 1000); // Convert milliseconds to seconds
@@ -572,7 +576,7 @@
             }
         
             updateCountdown(); // Initial display
-            let timer = setInterval(updateCountdown, 1000);
+            timer = setInterval(updateCountdown, 1000);
 
             async function calculateShipping() {
                 let destination = document.getElementById("destination").value;
@@ -693,19 +697,17 @@
                 });
             }
 
-            var socket = io();
-
             // Listen for new bid updates
             socket.on('new_bid', function(data) {
                 if (data.auction_id == {{ auction.id }}) {
-                    document.getElementById("current-bid").innerText = "KSH " + data.bid_amount;
+                    document.getElementById("current-bid-{{ auction.id }}").innerText = "KSH " + data.bid_amount;
                 }
             });
 
             // Listen for auction status updates
             socket.on('auction_update', function(data) {
                 if (data.auction_id == {{ auction.id }}) {
-                    document.getElementById("sale-status").innerHTML = "<span style='color: blue;'>" + data.sale_status + "</span>";
+                    document.getElementById("auction-status-{{ auction.id }}").innerHTML = "<span style='color: blue;'>" + data.sale_status + "</span>";
                 }
             });
 
@@ -721,6 +723,22 @@
                     body: "bid_amount=" + bidAmount
                 }).then(response => response.json())
                 .then(data => console.log(data));
+            });
+            document.addEventListener("DOMContentLoaded", function() {
+                // Join this auction's room when the page loads
+                joinAuctionRoom({{ auction.id }});
+                console.log("Joined auction room for auction ID: {{ auction.id }}");
+            });
+
+            // Debug Helper: Add this to show status element details
+            document.addEventListener("DOMContentLoaded", function() {
+                const statusElement = document.querySelector(`span[data-auction-id="{{ auction.id }}"]`);
+                if (statusElement) {
+                    console.log("Status element found:", statusElement);
+                    console.log("Data attribute value:", statusElement.getAttribute("data-auction-id"));
+                } else {
+                    console.error("Status element NOT found for auction ID: {{ auction.id }}");
+                }
             });
         </script>
         
