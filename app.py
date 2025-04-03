@@ -395,6 +395,14 @@ def auction_details(auction_id):
         
         db.session.commit()
         
+        @socketio.on('join_auction')
+        def handle_join_auction(data):
+            auction_id = data.get('auction_id')
+            if (auction_id):
+                room = f"auction_{auction_id}"
+                join_room(room)
+                print(f"Client joined room: {room}")
+        
         # Emit auction update event to notify all clients
         socketio.emit('auction_update', {
             'auction_id': auction.id,

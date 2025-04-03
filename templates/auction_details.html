@@ -487,7 +487,7 @@
         <div class="auction-status">
             <p id="current-bid-{{ auction.id }}"><strong>Current Bid:</strong> <span>KSH {{ current_bid }}</span></p>
             <p><strong>Time Left:</strong> <span id="countdown" data-end-time="{{ auction_end_utc }}"></span></p>
-            <p id="auctionn-status-{{ auction.id }}"><strong>Sale Status:</strong> <span>
+            <p id="auction-status-{{ auction.id }}"><strong>Sale Status:</strong> <span>
                 {% if auction.sale_status == 'Open' %}
                     <span style="color: green;">Open</span>
                 {% elif auction.sale_status == 'Sold' %}
@@ -706,8 +706,9 @@
 
             // Listen for auction status updates
             socket.on('auction_update', function(data) {
-                if (data.auction_id == {{ auction.id }}) {
-                    document.getElementById("auction-status-{{ auction.id }}").innerHTML = "<span style='color: blue;'>" + data.sale_status + "</span>";
+                const auctionId = document.querySelector('.auction-container').getAttribute('data-auction-id');
+                if (data.auction_id == auctionId) {
+                    reloadAuctionStatus(auctionId);
                 }
             });
 
@@ -740,6 +741,14 @@
                     console.error("Status element NOT found for auction ID: {{ auction.id }}");
                 }
             });
+
+            //@socketio.on('join_auction')
+            //def handle_join_auction(data):
+                //auction_id = data.get('auction_id')
+                //if (auction_id):
+                    //room = f"auction_{auction_id}"
+                    //join_room(room)
+                    //print(f"Client joined room: {room}")
         </script>
         
         

@@ -214,3 +214,4 @@ socket.on('auction_update', function(data) {
         reloadAuctionStatus(auctionId);
     }
 });
+
